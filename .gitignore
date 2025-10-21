@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Model files (too large for GitHub)
+*.pth
+*.pt
+*.h5
+*.pkl
+*.pickle
+
+# Large datasets
+*.csv
+MEROPS_sepsis_expanded_dataset.csv
+
+# Generated outputs
+generated_sequences/
+predicted_structures/
+protease_structures/
+docking_results/
+docking_analysis/
+*.png
+*.jpg
+*.jpeg
+*.pdf
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp

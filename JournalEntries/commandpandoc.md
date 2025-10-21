@@ -1,0 +1,1 @@
+pandoc Journal1.md -o Journal1.pdf --pdf-engine=weasyprint

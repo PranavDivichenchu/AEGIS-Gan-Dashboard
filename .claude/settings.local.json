@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/pranavdivichenchu/Documents/R_files/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
