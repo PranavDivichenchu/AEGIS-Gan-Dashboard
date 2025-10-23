@@ -1,6 +1,3 @@
-"""
-Molecular docking pipeline using AutoDock Vina
-"""
 import os
 import subprocess
 from pathlib import Path
@@ -11,10 +8,6 @@ import tempfile
 
 
 class MolecularDocking:
-    """
-    Perform molecular docking using AutoDock Vina
-    Requires: AutoDock Vina and AutoDock Tools installed
-    """
 
     def __init__(self, protease_dir="protease_structures", ligand_dir="predicted_structures/pdb_files", output_dir="docking_results"):
         self.protease_dir = Path(protease_dir)
@@ -31,18 +24,13 @@ class MolecularDocking:
         self.check_dependencies()
 
     def check_dependencies(self):
-        """Check if required tools are installed"""
         print("Checking dependencies...")
-
-        # Check for Vina
         try:
             result = subprocess.run(['vina', '--version'], capture_output=True, text=True)
             print(f"  ✓ AutoDock Vina found: {result.stdout.strip()}")
         except FileNotFoundError:
             print("  ✗ AutoDock Vina not found")
             print("    Install: conda install -c conda-forge vina")
-
-        # Check for prepare_receptor/prepare_ligand (AutoDock Tools)
         try:
             result = subprocess.run(['which', 'prepare_receptor4.py'], capture_output=True, text=True)
             if result.returncode == 0:
@@ -69,8 +57,8 @@ class MolecularDocking:
                     'prepare_receptor4.py',
                     '-r', pdb_file,
                     '-o', output_file,
-                    '-A', 'hydrogens',  # Add hydrogens
-                    '-U', 'nphs_lps_waters'  # Remove non-polar hydrogens, lone pairs, waters
+                    '-A', 'hydrogens', 
+                    '-U', 'nphs_lps_waters' 
                 ]
             else:
                 # Prepare ligand
@@ -105,7 +93,7 @@ class MolecularDocking:
                 'obabel',
                 pdb_file,
                 '-O', output_file,
-                '-h'  # Add hydrogens
+                '-h' 
             ]
 
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)
@@ -143,13 +131,11 @@ class MolecularDocking:
             import numpy as np
             coords = np.array(coords)
 
-            # Calculate center and size
+            
             center = coords.mean(axis=0)
             mins = coords.min(axis=0)
             maxs = coords.max(axis=0)
             size = maxs - mins
-
-            # Add padding (10 Angstroms on each side)
             padding = 10.0
             size = size + 2 * padding
 
@@ -164,7 +150,6 @@ class MolecularDocking:
 
         except Exception as e:
             print(f"    Error calculating binding box: {e}")
-            # Return default box
             return {
                 'center_x': 0.0,
                 'center_y': 0.0,
@@ -217,7 +202,6 @@ class MolecularDocking:
                         break
 
             if binding_affinity is None:
-                # Try to read from output file
                 with open(output_pdbqt, 'r') as f:
                     for line in f:
                         if 'REMARK VINA RESULT:' in line:
@@ -261,16 +245,16 @@ class MolecularDocking:
             if not self.pdb_to_pdbqt(protease_pdb, str(receptor_pdbqt), is_receptor=True):
                 return self._create_error_result(peptide_id, protease_name, "Receptor conversion failed")
 
-        # Convert ligand
+        
         print(f"    Converting ligand to PDBQT...")
         if not self.pdb_to_pdbqt(peptide_pdb, str(ligand_pdbqt), is_receptor=False):
             return self._create_error_result(peptide_id, protease_name, "Ligand conversion failed")
 
-        # Calculate binding box
+        
         print(f"    Calculating binding box...")
         box = self.calculate_binding_box(protease_pdb)
 
-        # Run docking
+    
         print(f"    Running AutoDock Vina...")
         output_pdbqt = self.results_dir / f"{peptide_id}_{Path(protease_pdb).stem}_docked.pdbqt"
 
@@ -311,14 +295,7 @@ class MolecularDocking:
         }
 
     def batch_dock(self, prediction_results_csv: str, protease_structures_csv: str, max_dockings: int = None):
-        """
-        Perform batch docking
-
-        Args:
-            prediction_results_csv: CSV with predicted peptide structures
-            protease_structures_csv: CSV with protease structures
-            max_dockings: Maximum number of dockings to perform
-        """
+        
         print("=" * 80)
         print("BATCH MOLECULAR DOCKING")
         print("=" * 80)
