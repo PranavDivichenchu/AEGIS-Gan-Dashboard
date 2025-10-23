@@ -78,23 +78,23 @@ class MolecularDocking:
         except FileNotFoundError:
             # Fallback: Use OpenBabel if AutoDock Tools not available
             print("    AutoDock Tools not found, trying OpenBabel...")
-            return self.pdb_to_pdbqt_obabel(pdb_file, output_file)
+            return self.pdb_to_pdbqt_obabel(pdb_file, output_file, is_receptor)
 
-    def pdb_to_pdbqt_obabel(self, pdb_file: str, output_file: str) -> bool:
+    def pdb_to_pdbqt_obabel(self, pdb_file: str, output_file: str, is_receptor: bool = False) -> bool:
         """
         Fallback: Convert PDB to PDBQT using OpenBabel
 
         Args:
             pdb_file: Input PDB file
             output_file: Output PDBQT file
+            is_receptor: True if receptor (rigid), False if ligand (flexible)
         """
         try:
-            cmd = [
-                'obabel',
-                pdb_file,
-                '-O', output_file,
-                '-h' 
-            ]
+            cmd = ['obabel', pdb_file, '-O', output_file, '-h']
+
+            # Receptors need to be rigid (no ROOT tags)
+            if is_receptor:
+                cmd.append('-xr')  # Rigid receptor mode
 
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)
             return True

@@ -15,6 +15,25 @@ ESMFOLD_API = "https://api.esmatlas.com/foldSequence/v1/pdb/"
 OUTPUT_DIR = "predicted_structures"
 DELAY_BETWEEN_REQUESTS = 2  # seconds to avoid rate limiting
 
+# Amino acid conversion: 3-letter to 1-letter
+AA_3TO1 = {
+    'Ala': 'A', 'Arg': 'R', 'Asn': 'N', 'Asp': 'D', 'Cys': 'C',
+    'Gln': 'Q', 'Glu': 'E', 'Gly': 'G', 'His': 'H', 'Ile': 'I',
+    'Leu': 'L', 'Lys': 'K', 'Met': 'M', 'Phe': 'F', 'Pro': 'P',
+    'Ser': 'S', 'Thr': 'T', 'Trp': 'W', 'Tyr': 'Y', 'Val': 'V'
+}
+
+def convert_3letter_to_1letter(sequence_3letter):
+    """Convert 3-letter amino acid code sequence to 1-letter code"""
+    import re
+    # Extract all 3-letter codes
+    aa_codes = re.findall(r'[A-Z][a-z]{2}', sequence_3letter)
+
+    # Convert to 1-letter
+    sequence_1letter = ''.join(AA_3TO1.get(aa, 'X') for aa in aa_codes)
+
+    return sequence_1letter
+
 
 class StructurePredictor:
     """Predict 3D structures using ESMFold API"""
@@ -52,10 +71,14 @@ class StructurePredictor:
             }
 
         try:
+            # Convert 3-letter to 1-letter code if needed
+            sequence_1letter = convert_3letter_to_1letter(sequence)
+            print(f"  Converted to 1-letter: {sequence_1letter}")
+
             # Make API request
             response = requests.post(
                 ESMFOLD_API,
-                data=sequence,
+                data=sequence_1letter,
                 headers={'Content-Type': 'text/plain'},
                 timeout=60
             )
@@ -126,9 +149,12 @@ class StructurePredictor:
                 if torch.cuda.is_available():
                     self.esmfold_model = self.esmfold_model.cuda()
 
+            # Convert 3-letter to 1-letter code if needed
+            sequence_1letter = convert_3letter_to_1letter(sequence)
+
             # Predict structure
             with torch.no_grad():
-                output = self.esmfold_model.infer_pdb(sequence)
+                output = self.esmfold_model.infer_pdb(sequence_1letter)
 
             # Save PDB
             with open(output_file, 'w') as f:
