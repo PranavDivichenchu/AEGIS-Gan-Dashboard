@@ -9,55 +9,6 @@ import matplotlib.pyplot as plt
 import os
 from torch.nn.utils import spectral_norm
 
-
-df = pd.read_csv("/Users/pranavdivichenchu/Documents/AET Senior Research/MEROPS_sepsis_expanded_dataset.csv")
-sequence_cols = ['P4','P3','P2','P1',"P1'","P2'","P3'","P4'"]
-label_col = 'Label'
-protease_col = 'Protease_Name'
-
-df_pos = df[df[label_col] == 1].copy()
-
-
-encoders = {}
-for col in sequence_cols:
-    le = LabelEncoder()
-    df_pos[col] = le.fit_transform(df_pos[col])
-    encoders[col] = le 
-
-
-protease_encoder = LabelEncoder()
-df_pos['Protease_Encoded'] = protease_encoder.fit_transform(df_pos[protease_col])
-num_proteases = len(protease_encoder.classes_)
-
-print(f"Number of unique proteases: {num_proteases}")
-print(f"Protease classes: {protease_encoder.classes_}")
-
-data = df_pos[sequence_cols].values.astype(float)
-protease_labels = df_pos['Protease_Encoded'].values
-
-scaler = StandardScaler()
-data = scaler.fit_transform(data)
-real_data = torch.tensor(data, dtype=torch.float32)
-protease_tensor = torch.tensor(protease_labels, dtype=torch.long)
-
-
-latent_dim = 128  
-data_dim = real_data.shape[1]
-hidden_dim = 256
-batch_size = 64  
-lr_g = 0.0001
-lr_d = 0.0004 
-epochs = 400
-n_critic = 3  
-lambda_gp = 10  
-lambda_aux = 1.0  # Auxiliary classifier loss weight
-lambda_diversity = 0.1  # Diversity loss weight
-lambda_consistency = 0.5  # Consistency regularization weight
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-print(f"Using device: {device}")
-print(f"Batch size: {batch_size}, Latent dim: {latent_dim}")
-
 # =====================
 # Advanced Building Blocks
 # =====================
@@ -324,39 +275,9 @@ def consistency_regularization(generator, z, labels, device):
     return consistency_loss
 
 # =====================
-# Initialize models
-# =====================
-G = SupremeGenerator(latent_dim, num_proteases, data_dim, hidden_dim).to(device)
-C = SupremeCritic(data_dim, num_proteases, hidden_dim).to(device)
-
-print(f"\nGenerator parameters: {sum(p.numel() for p in G.parameters()):,}")
-print(f"Critic parameters: {sum(p.numel() for p in C.parameters()):,}")
-
-# =====================
-# Optimizers
-# =====================
-optimizer_G = optim.Adam(G.parameters(), lr=lr_g, betas=(0.0, 0.9))
-optimizer_C = optim.Adam(C.parameters(), lr=lr_d, betas=(0.0, 0.9))
-
-# Learning rate schedulers for better convergence
-scheduler_G = optim.lr_scheduler.ExponentialLR(optimizer_G, gamma=0.99)
-scheduler_C = optim.lr_scheduler.ExponentialLR(optimizer_C, gamma=0.99)
-
-# Loss criterion for auxiliary classifier
-criterion_aux = nn.CrossEntropyLoss()
-
-# =====================
-# Tracking metrics
-# =====================
-G_losses, C_losses = [], []
-wasserstein_distances = []
-aux_accuracies = []
-diversity_scores = []
-
-# =====================
 # Generation function
 # =====================
-def generate_sequences(G, protease_name=None, protease_idx=None, num_samples=10):
+def generate_sequences(G, protease_encoder, encoders, scaler, sequence_cols, latent_dim, device, protease_name=None, protease_idx=None, num_samples=10):
     """Generate sequences with the trained generator"""
     if protease_name is not None:
         protease_idx = np.where(protease_encoder.classes_ == protease_name)[0][0]
@@ -402,223 +323,303 @@ def load_models(generator, critic, gen_path="supreme_generator.pth", critic_path
         return True
     return False
 
-# Try to load existing models
-if not load_models(G, C):
-    print("No saved models found, training from scratch.\n")
+if __name__ == "__main__":
+    # =====================
+    # Data Loading and Setup
+    # =====================
+    df = pd.read_csv("/Users/pranavdivichenchu/Documents/AET Senior Research/MEROPS_sepsis_expanded_dataset.csv")
+    sequence_cols = ['P4','P3','P2','P1',"P1'","P2'","P3'","P4'"]
+    label_col = 'Label'
+    protease_col = 'Protease_Name'
 
-# =====================
-# Training Loop
-# =====================
-print("=" * 80)
-print("SUPREME GAN TRAINING")
-print("=" * 80)
-print("Advanced features enabled:")
-print("  ✓ Wasserstein loss with gradient penalty")
-print("  ✓ Self-attention mechanism")
-print("  ✓ Spectral normalization")
-print("  ✓ Auxiliary classifier (AC-GAN)")
-print("  ✓ Diversity loss")
-print("  ✓ Consistency regularization")
-print("  ✓ Conditional batch normalization")
-print("  ✓ Residual connections")
-print("  ✓ Multi-task learning")
-print("=" * 80)
-print()
+    df_pos = df[df[label_col] == 1].copy()
 
-for epoch in range(epochs):
-    epoch_c_loss = 0
-    epoch_g_loss = 0
-    epoch_wd = 0
-    epoch_aux_acc = 0
-    epoch_diversity = 0
-    num_batches = len(real_data) // batch_size
+    encoders = {}
+    for col in sequence_cols:
+        le = LabelEncoder()
+        df_pos[col] = le.fit_transform(df_pos[col])
+        encoders[col] = le
 
-    for batch_idx in range(num_batches):
-        # ----- Train Critic (n_critic times) -----
-        for _ in range(n_critic):
-            C.zero_grad()
+    protease_encoder = LabelEncoder()
+    df_pos['Protease_Encoded'] = protease_encoder.fit_transform(df_pos[protease_col])
+    num_proteases = len(protease_encoder.classes_)
 
-            # Sample real data
-            idx = torch.randint(0, len(real_data), (batch_size,))
-            real_batch = real_data[idx].to(device)
-            real_protease_labels = protease_tensor[idx].to(device)
+    print(f"Number of unique proteases: {num_proteases}")
+    print(f"Protease classes: {protease_encoder.classes_}")
 
+    data = df_pos[sequence_cols].values.astype(float)
+    protease_labels = df_pos['Protease_Encoded'].values
+
+    scaler = StandardScaler()
+    data = scaler.fit_transform(data)
+    real_data = torch.tensor(data, dtype=torch.float32)
+    protease_tensor = torch.tensor(protease_labels, dtype=torch.long)
+
+    # =====================
+    # Hyperparameters
+    # =====================
+    latent_dim = 128
+    data_dim = real_data.shape[1]
+    hidden_dim = 256
+    batch_size = 64
+    lr_g = 0.0001
+    lr_d = 0.0004
+    epochs = 400
+    n_critic = 3
+    lambda_gp = 10
+    lambda_aux = 1.0
+    lambda_diversity = 0.1
+    lambda_consistency = 0.5
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    print(f"Using device: {device}")
+    print(f"Batch size: {batch_size}, Latent dim: {latent_dim}")
+
+    # =====================
+    # Initialize models
+    # =====================
+    G = SupremeGenerator(latent_dim, num_proteases, data_dim, hidden_dim).to(device)
+    C = SupremeCritic(data_dim, num_proteases, hidden_dim).to(device)
+
+    print(f"\nGenerator parameters: {sum(p.numel() for p in G.parameters()):,}")
+    print(f"Critic parameters: {sum(p.numel() for p in C.parameters()):,}")
+
+    # =====================
+    # Optimizers
+    # =====================
+    optimizer_G = optim.Adam(G.parameters(), lr=lr_g, betas=(0.0, 0.9))
+    optimizer_C = optim.Adam(C.parameters(), lr=lr_d, betas=(0.0, 0.9))
+
+    scheduler_G = optim.lr_scheduler.ExponentialLR(optimizer_G, gamma=0.99)
+    scheduler_C = optim.lr_scheduler.ExponentialLR(optimizer_C, gamma=0.99)
+
+    criterion_aux = nn.CrossEntropyLoss()
+
+    # =====================
+    # Tracking metrics
+    # =====================
+    G_losses, C_losses = [], []
+    wasserstein_distances = []
+    aux_accuracies = []
+    diversity_scores = []
+
+    # Try to load existing models
+    if not load_models(G, C):
+        print("No saved models found, training from scratch.\n")
+
+    # =====================
+    # Training Loop
+    # =====================
+    print("=" * 80)
+    print("SUPREME GAN TRAINING")
+    print("=" * 80)
+    print("Advanced features enabled:")
+    print("  ✓ Wasserstein loss with gradient penalty")
+    print("  ✓ Self-attention mechanism")
+    print("  ✓ Spectral normalization")
+    print("  ✓ Auxiliary classifier (AC-GAN)")
+    print("  ✓ Diversity loss")
+    print("  ✓ Consistency regularization")
+    print("  ✓ Conditional batch normalization")
+    print("  ✓ Residual connections")
+    print("  ✓ Multi-task learning")
+    print("=" * 80)
+    print()
+    
+    for epoch in range(epochs):
+        epoch_c_loss = 0
+        epoch_g_loss = 0
+        epoch_wd = 0
+        epoch_aux_acc = 0
+        epoch_diversity = 0
+        num_batches = len(real_data) // batch_size
+    
+        for batch_idx in range(num_batches):
+            # ----- Train Critic (n_critic times) -----
+            for _ in range(n_critic):
+                C.zero_grad()
+    
+                # Sample real data
+                idx = torch.randint(0, len(real_data), (batch_size,))
+                real_batch = real_data[idx].to(device)
+                real_protease_labels = protease_tensor[idx].to(device)
+    
+                # Generate fake data
+                z = torch.randn(batch_size, latent_dim).to(device)
+                fake_batch = G(z, real_protease_labels).detach()
+    
+                # Critic predictions
+                real_validity, real_class_pred = C(real_batch)
+                fake_validity, fake_class_pred = C(fake_batch)
+    
+                # Wasserstein loss
+                wasserstein_loss = -torch.mean(real_validity) + torch.mean(fake_validity)
+    
+                # Gradient penalty
+                gp = compute_gradient_penalty(C, real_batch, fake_batch, device)
+    
+                # Auxiliary classifier loss (only on real data for stability)
+                aux_loss_real = criterion_aux(real_class_pred, real_protease_labels)
+    
+                # Total critic loss
+                loss_C = wasserstein_loss + lambda_gp * gp + lambda_aux * aux_loss_real
+    
+                loss_C.backward()
+                optimizer_C.step()
+    
+                # Calculate auxiliary accuracy
+                _, predicted = torch.max(real_class_pred.data, 1)
+                aux_acc = (predicted == real_protease_labels).float().mean().item()
+                epoch_aux_acc += aux_acc
+    
+            # ----- Train Generator (once) -----
+            G.zero_grad()
+    
             # Generate fake data
             z = torch.randn(batch_size, latent_dim).to(device)
-            fake_batch = G(z, real_protease_labels).detach()
-
+            fake_batch = G(z, real_protease_labels)
+    
             # Critic predictions
-            real_validity, real_class_pred = C(real_batch)
             fake_validity, fake_class_pred = C(fake_batch)
+    
+            # Generator adversarial loss
+            adv_loss = -torch.mean(fake_validity)
+    
+            # Auxiliary classifier loss (generator should produce samples of correct class)
+            aux_loss_fake = criterion_aux(fake_class_pred, real_protease_labels)
+    
+            # Diversity loss (prevent mode collapse)
+            div_loss = diversity_loss(fake_batch)
+    
+            # Consistency regularization
+            cons_loss = consistency_regularization(G, z, real_protease_labels, device)
+    
+            # Total generator loss
+            loss_G = adv_loss + lambda_aux * aux_loss_fake + lambda_diversity * div_loss + lambda_consistency * cons_loss
+    
+            loss_G.backward()
+            optimizer_G.step()
+    
+            # Track metrics
+            epoch_c_loss += loss_C.item()
+            epoch_g_loss += loss_G.item()
+    
+            with torch.no_grad():
+                wd = torch.mean(real_validity).item() - torch.mean(fake_validity).item()
+                epoch_wd += wd
+                epoch_diversity += (1.0 - div_loss.item())  # Higher is better
+    
+        # Update learning rates
+        scheduler_G.step()
+        scheduler_C.step()
+    
+        # Record average metrics
+        C_losses.append(epoch_c_loss / (num_batches * n_critic))
+        G_losses.append(epoch_g_loss / num_batches)
+        wasserstein_distances.append(epoch_wd / (num_batches * n_critic))
+        aux_accuracies.append(epoch_aux_acc / (num_batches * n_critic))
+        diversity_scores.append(epoch_diversity / num_batches)
+    
+        # Print progress
+        if (epoch + 1) % 25 == 0:
+            print(f"\nEpoch {epoch+1}/{epochs}:")
+            print(f"  Critic Loss: {C_losses[-1]:.4f}")
+            print(f"  Generator Loss: {G_losses[-1]:.4f}")
+            print(f"  Wasserstein Distance: {wasserstein_distances[-1]:.4f}")
+            print(f"  Auxiliary Accuracy: {aux_accuracies[-1]*100:.2f}%")
+            print(f"  Diversity Score: {diversity_scores[-1]:.4f}")
+            print(f"  Learning Rate (G): {scheduler_G.get_last_lr()[0]:.6f}")
+    
+            # Generate samples
+            if (epoch + 1) % 50 == 0:
+                print("\nSample sequences:")
+                for i in range(min(2, num_proteases)):
+                    sequences, protease_name = generate_sequences(G, protease_encoder, encoders, scaler, sequence_cols, latent_dim, device, protease_idx=i, num_samples=2)
+                    print(f"\n{protease_name}:")
+                    for seq in sequences:
+                        print(f"  {' '.join(seq)}")
+                print("-" * 80)
+    
+    # =====================
+    # Plot comprehensive metrics
+    # =====================
+    fig, axes = plt.subplots(2, 3, figsize=(18, 10))
+    
+    # Loss plot
+    axes[0, 0].plot(C_losses, label="Critic Loss", alpha=0.7)
+    axes[0, 0].plot(G_losses, label="Generator Loss", alpha=0.7)
+    axes[0, 0].set_xlabel("Epoch")
+    axes[0, 0].set_ylabel("Loss")
+    axes[0, 0].legend()
+    axes[0, 0].set_title("Training Losses")
+    axes[0, 0].grid(True, alpha=0.3)
+    
+    # Wasserstein distance
+    axes[0, 1].plot(wasserstein_distances, color='green', alpha=0.7)
+    axes[0, 1].set_xlabel("Epoch")
+    axes[0, 1].set_ylabel("Distance")
+    axes[0, 1].set_title("Wasserstein Distance")
+    axes[0, 1].grid(True, alpha=0.3)
+    
+    # Auxiliary accuracy
+    axes[0, 2].plot(aux_accuracies, color='orange', alpha=0.7)
+    axes[0, 2].set_xlabel("Epoch")
+    axes[0, 2].set_ylabel("Accuracy")
+    axes[0, 2].set_title("Protease Classification Accuracy")
+    axes[0, 2].grid(True, alpha=0.3)
+    
+    # Diversity score
+    axes[1, 0].plot(diversity_scores, color='purple', alpha=0.7)
+    axes[1, 0].set_xlabel("Epoch")
+    axes[1, 0].set_ylabel("Diversity Score")
+    axes[1, 0].set_title("Sample Diversity (Higher is Better)")
+    axes[1, 0].grid(True, alpha=0.3)
+    
+    # Loss ratio (should stabilize)
+    loss_ratio = np.array(G_losses) / (np.array(C_losses) + 1e-8)
+    axes[1, 1].plot(loss_ratio, color='red', alpha=0.7)
+    axes[1, 1].set_xlabel("Epoch")
+    axes[1, 1].set_ylabel("G Loss / C Loss")
+    axes[1, 1].set_title("Loss Ratio (Balance Indicator)")
+    axes[1, 1].grid(True, alpha=0.3)
+    
+    # Combined quality score
+    quality_score = np.array(aux_accuracies) * np.array(diversity_scores)
+    axes[1, 2].plot(quality_score, color='blue', alpha=0.7)
+    axes[1, 2].set_xlabel("Epoch")
+    axes[1, 2].set_ylabel("Quality Score")
+    axes[1, 2].set_title("Overall Quality (Accuracy × Diversity)")
+    axes[1, 2].grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig("supreme_gan_training_metrics.png", dpi=150)
+    print("\nComprehensive metrics saved as 'supreme_gan_training_metrics.png'")
+    plt.show()
+    
+    # =====================
+    # Save final models
+    # =====================
+    save_models(G, C)
+    
+    # =====================
+    # Final evaluation
+    # =====================
+    print("\n" + "=" * 80)
+    print("FINAL GENERATED SEQUENCES")
+    print("=" * 80)
 
-            # Wasserstein loss
-            wasserstein_loss = -torch.mean(real_validity) + torch.mean(fake_validity)
-
-            # Gradient penalty
-            gp = compute_gradient_penalty(C, real_batch, fake_batch, device)
-
-            # Auxiliary classifier loss (only on real data for stability)
-            aux_loss_real = criterion_aux(real_class_pred, real_protease_labels)
-
-            # Total critic loss
-            loss_C = wasserstein_loss + lambda_gp * gp + lambda_aux * aux_loss_real
-
-            loss_C.backward()
-            optimizer_C.step()
-
-            # Calculate auxiliary accuracy
-            _, predicted = torch.max(real_class_pred.data, 1)
-            aux_acc = (predicted == real_protease_labels).float().mean().item()
-            epoch_aux_acc += aux_acc
-
-        # ----- Train Generator (once) -----
-        G.zero_grad()
-
-        # Generate fake data
-        z = torch.randn(batch_size, latent_dim).to(device)
-        fake_batch = G(z, real_protease_labels)
-
-        # Critic predictions
-        fake_validity, fake_class_pred = C(fake_batch)
-
-        # Generator adversarial loss
-        adv_loss = -torch.mean(fake_validity)
-
-        # Auxiliary classifier loss (generator should produce samples of correct class)
-        aux_loss_fake = criterion_aux(fake_class_pred, real_protease_labels)
-
-        # Diversity loss (prevent mode collapse)
-        div_loss = diversity_loss(fake_batch)
-
-        # Consistency regularization
-        cons_loss = consistency_regularization(G, z, real_protease_labels, device)
-
-        # Total generator loss
-        loss_G = adv_loss + lambda_aux * aux_loss_fake + lambda_diversity * div_loss + lambda_consistency * cons_loss
-
-        loss_G.backward()
-        optimizer_G.step()
-
-        # Track metrics
-        epoch_c_loss += loss_C.item()
-        epoch_g_loss += loss_G.item()
-
-        with torch.no_grad():
-            wd = torch.mean(real_validity).item() - torch.mean(fake_validity).item()
-            epoch_wd += wd
-            epoch_diversity += (1.0 - div_loss.item())  # Higher is better
-
-    # Update learning rates
-    scheduler_G.step()
-    scheduler_C.step()
-
-    # Record average metrics
-    C_losses.append(epoch_c_loss / (num_batches * n_critic))
-    G_losses.append(epoch_g_loss / num_batches)
-    wasserstein_distances.append(epoch_wd / (num_batches * n_critic))
-    aux_accuracies.append(epoch_aux_acc / (num_batches * n_critic))
-    diversity_scores.append(epoch_diversity / num_batches)
-
-    # Print progress
-    if (epoch + 1) % 25 == 0:
-        print(f"\nEpoch {epoch+1}/{epochs}:")
-        print(f"  Critic Loss: {C_losses[-1]:.4f}")
-        print(f"  Generator Loss: {G_losses[-1]:.4f}")
-        print(f"  Wasserstein Distance: {wasserstein_distances[-1]:.4f}")
-        print(f"  Auxiliary Accuracy: {aux_accuracies[-1]*100:.2f}%")
-        print(f"  Diversity Score: {diversity_scores[-1]:.4f}")
-        print(f"  Learning Rate (G): {scheduler_G.get_last_lr()[0]:.6f}")
-
-        # Generate samples
-        if (epoch + 1) % 50 == 0:
-            print("\nSample sequences:")
-            for i in range(min(2, num_proteases)):
-                sequences, protease_name = generate_sequences(G, protease_idx=i, num_samples=2)
-                print(f"\n{protease_name}:")
-                for seq in sequences:
-                    print(f"  {' '.join(seq)}")
-            print("-" * 80)
-
-# =====================
-# Plot comprehensive metrics
-# =====================
-fig, axes = plt.subplots(2, 3, figsize=(18, 10))
-
-# Loss plot
-axes[0, 0].plot(C_losses, label="Critic Loss", alpha=0.7)
-axes[0, 0].plot(G_losses, label="Generator Loss", alpha=0.7)
-axes[0, 0].set_xlabel("Epoch")
-axes[0, 0].set_ylabel("Loss")
-axes[0, 0].legend()
-axes[0, 0].set_title("Training Losses")
-axes[0, 0].grid(True, alpha=0.3)
-
-# Wasserstein distance
-axes[0, 1].plot(wasserstein_distances, color='green', alpha=0.7)
-axes[0, 1].set_xlabel("Epoch")
-axes[0, 1].set_ylabel("Distance")
-axes[0, 1].set_title("Wasserstein Distance")
-axes[0, 1].grid(True, alpha=0.3)
-
-# Auxiliary accuracy
-axes[0, 2].plot(aux_accuracies, color='orange', alpha=0.7)
-axes[0, 2].set_xlabel("Epoch")
-axes[0, 2].set_ylabel("Accuracy")
-axes[0, 2].set_title("Protease Classification Accuracy")
-axes[0, 2].grid(True, alpha=0.3)
-
-# Diversity score
-axes[1, 0].plot(diversity_scores, color='purple', alpha=0.7)
-axes[1, 0].set_xlabel("Epoch")
-axes[1, 0].set_ylabel("Diversity Score")
-axes[1, 0].set_title("Sample Diversity (Higher is Better)")
-axes[1, 0].grid(True, alpha=0.3)
-
-# Loss ratio (should stabilize)
-loss_ratio = np.array(G_losses) / (np.array(C_losses) + 1e-8)
-axes[1, 1].plot(loss_ratio, color='red', alpha=0.7)
-axes[1, 1].set_xlabel("Epoch")
-axes[1, 1].set_ylabel("G Loss / C Loss")
-axes[1, 1].set_title("Loss Ratio (Balance Indicator)")
-axes[1, 1].grid(True, alpha=0.3)
-
-# Combined quality score
-quality_score = np.array(aux_accuracies) * np.array(diversity_scores)
-axes[1, 2].plot(quality_score, color='blue', alpha=0.7)
-axes[1, 2].set_xlabel("Epoch")
-axes[1, 2].set_ylabel("Quality Score")
-axes[1, 2].set_title("Overall Quality (Accuracy × Diversity)")
-axes[1, 2].grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.savefig("supreme_gan_training_metrics.png", dpi=150)
-print("\nComprehensive metrics saved as 'supreme_gan_training_metrics.png'")
-plt.show()
-
-# =====================
-# Save final models
-# =====================
-save_models(G, C)
-
-# =====================
-# Final evaluation
-# =====================
-print("\n" + "=" * 80)
-print("FINAL GENERATED SEQUENCES")
-print("=" * 80)
-
-for i in range(num_proteases):
-    sequences, protease_name = generate_sequences(G, protease_idx=i, num_samples=5)
-    print(f"\n{protease_name}:")
-    for j, seq in enumerate(sequences, 1):
-        print(f"  {j}. {' '.join(seq)}")
-
-print("\n" + "=" * 80)
-print("SupremeGAN Training Completed Successfully!")
-print("=" * 80)
-print("\nFinal Metrics:")
-print(f"  Final Wasserstein Distance: {wasserstein_distances[-1]:.4f}")
-print(f"  Final Auxiliary Accuracy: {aux_accuracies[-1]*100:.2f}%")
-print(f"  Final Diversity Score: {diversity_scores[-1]:.4f}")
-print(f"  Final Quality Score: {quality_score[-1]:.4f}")
-print("=" * 80)
+    for i in range(num_proteases):
+        sequences, protease_name = generate_sequences(G, protease_encoder, encoders, scaler, sequence_cols, latent_dim, device, protease_idx=i, num_samples=5)
+        print(f"\n{protease_name}:")
+        for j, seq in enumerate(sequences, 1):
+            print(f"  {j}. {' '.join(seq)}")
+    
+    print("\n" + "=" * 80)
+    print("SupremeGAN Training Completed Successfully!")
+    print("=" * 80)
+    print("\nFinal Metrics:")
+    print(f"  Final Wasserstein Distance: {wasserstein_distances[-1]:.4f}")
+    print(f"  Final Auxiliary Accuracy: {aux_accuracies[-1]*100:.2f}%")
+    print(f"  Final Diversity Score: {diversity_scores[-1]:.4f}")
+    print(f"  Final Quality Score: {quality_score[-1]:.4f}")
+    print("=" * 80)

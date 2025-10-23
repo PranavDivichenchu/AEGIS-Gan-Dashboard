@@ -35,9 +35,29 @@ PROTEASES = {
     "Caspase-9": "C14.006",
 }
 
-SEQUENCES_PER_PROTEASE = 100 
+# Standard 20 amino acids (3-letter codes)
+STANDARD_AA_3LETTER = {
+    'Ala', 'Arg', 'Asn', 'Asp', 'Cys', 'Gln', 'Glu', 'Gly', 'His', 'Ile',
+    'Leu', 'Lys', 'Met', 'Phe', 'Pro', 'Ser', 'Thr', 'Trp', 'Tyr', 'Val'
+}
+
+SEQUENCES_PER_PROTEASE = 100
 OUTPUT_DIR = "generated_sequences"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def is_standard_sequence(sequence):
+    """Check if sequence contains only standard amino acids"""
+    import re
+
+    # Remove any special characters and check what's left
+    # Standard sequences should ONLY contain 3-letter codes from our set
+
+    # Try to match the entire sequence as a concatenation of standard 3-letter codes
+    # Each standard AA is exactly 3 characters: Capital + lowercase + lowercase
+    pattern = r'^(' + '|'.join(STANDARD_AA_3LETTER) + r')+$'
+
+    return bool(re.match(pattern, sequence))
 
 
 class SequenceGenerator:
@@ -184,23 +204,38 @@ class SequenceGenerator:
         # Create output directory
         os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-        # Save to CSV
+        # Filter to only standard amino acids
         df = pd.DataFrame(all_sequences)
-        output_file = os.path.join(OUTPUT_DIR, f"{model_label.lower()}_sequences.csv")
-        df.to_csv(output_file, index=False)
+        original_count = len(df)
 
-        print(f"\nSaved {len(all_sequences)} sequences to {output_file}")
+        print(f"\nFiltering to standard amino acids only...")
+        df['is_standard'] = df['sequence'].apply(is_standard_sequence)
+        df_filtered = df[df['is_standard']].copy()
+        df_filtered = df_filtered.drop(columns=['is_standard'])
+
+        filtered_count = len(df_filtered)
+        removed_count = original_count - filtered_count
+
+        print(f"  Original sequences: {original_count}")
+        print(f"  Standard AA sequences: {filtered_count} ({filtered_count/original_count*100:.1f}%)")
+        print(f"  Removed (non-standard): {removed_count}")
+
+        # Save to CSV
+        output_file = os.path.join(OUTPUT_DIR, f"{model_label.lower()}_sequences.csv")
+        df_filtered.to_csv(output_file, index=False)
+
+        print(f"\nSaved {len(df_filtered)} sequences to {output_file}")
 
         # Also save in FASTA format for structure prediction
         fasta_file = os.path.join(OUTPUT_DIR, f"{model_label.lower()}_sequences.fasta")
         with open(fasta_file, 'w') as f:
-            for i, row in df.iterrows():
+            for i, row in df_filtered.iterrows():
                 header = f">{row['protease_name']}|{row['merops_id']}|seq_{i}"
                 f.write(f"{header}\n{row['sequence']}\n")
 
         print(f"Saved FASTA format to {fasta_file}")
 
-        return df
+        return df_filtered
 
 
 def main():
