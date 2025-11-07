@@ -302,7 +302,7 @@ class MolecularDocking:
 
         # Load data
         peptides_df = pd.read_csv(prediction_results_csv)
-        peptides_df = peptides_df[peptides_df['status'] == 'success']  # Only successful predictions
+        peptides_df = peptides_df[peptides_df['status'].isin(['success', 'cached'])]  # Successful and cached predictions
 
         proteases_df = pd.read_csv(protease_structures_csv)
         proteases_df = proteases_df[proteases_df['status'] == 'success']  # Only successful downloads
@@ -347,8 +347,12 @@ class MolecularDocking:
         results_df.to_csv(results_file, index=False)
 
         # Summary
-        successful = len(results_df[results_df['status'] == 'success'])
-        failed = len(results_df[results_df['status'] == 'failed'])
+        if len(results_df) > 0:
+            successful = len(results_df[results_df['status'] == 'success'])
+            failed = len(results_df[results_df['status'] == 'failed'])
+        else:
+            successful = 0
+            failed = 0
 
         print("\n" + "=" * 80)
         print("DOCKING SUMMARY")

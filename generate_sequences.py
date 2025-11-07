@@ -41,7 +41,7 @@ STANDARD_AA_3LETTER = {
     'Leu', 'Lys', 'Met', 'Phe', 'Pro', 'Ser', 'Thr', 'Trp', 'Tyr', 'Val'
 }
 
-SEQUENCES_PER_PROTEASE = 100
+SEQUENCES_PER_PROTEASE = 10
 OUTPUT_DIR = "generated_sequences"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -162,8 +162,12 @@ class SequenceGenerator:
 
         return sequences
 
-    def generate_all_sequences(self, model_name="supreme"):
+    def generate_all_sequences(self, model_name="supreme", num_sequences_per_protease=None):
         """Generate sequences from specified model for all proteases"""
+
+        # Use parameter or fall back to default
+        if num_sequences_per_protease is None:
+            num_sequences_per_protease = SEQUENCES_PER_PROTEASE
 
         # Load appropriate model
         if model_name.lower() == "conditional":
@@ -176,6 +180,7 @@ class SequenceGenerator:
             raise ValueError(f"Unknown model: {model_name}")
 
         print(f"\nGenerating sequences using {model_label}...")
+        print(f"Generating {num_sequences_per_protease} sequences per protease...")
 
         all_sequences = []
         for protease_name, merops_id in PROTEASES.items():
@@ -189,7 +194,7 @@ class SequenceGenerator:
             protease_idx = protease_idx[0]
 
             # Generate sequences
-            sequences = self.generate_sequences(generator, latent_dim, protease_idx, SEQUENCES_PER_PROTEASE)
+            sequences = self.generate_sequences(generator, latent_dim, protease_idx, num_sequences_per_protease)
 
             for seq in sequences:
                 all_sequences.append({

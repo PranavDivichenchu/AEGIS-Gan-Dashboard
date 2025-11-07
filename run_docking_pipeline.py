@@ -35,7 +35,10 @@ class DockingPipeline:
         start_time = time.time()
 
         generator = SequenceGenerator()
-        df = generator.generate_all_sequences(model_name=self.gan_model)
+        df = generator.generate_all_sequences(
+            model_name=self.gan_model,
+            num_sequences_per_protease=self.sequences_per_protease
+        )
 
         self.sequences_file = f"generated_sequences/{self.gan_model.lower()}gan_sequences.csv"
 
