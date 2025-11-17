@@ -1,0 +1,187 @@
+================================================================================
+PEPTIDE SYNTHESIS REQUEST
+================================================================================
+
+Customer: [Your Name/Institution]
+Project: Protease Inhibitor Development for Sepsis
+Date: November 2025
+Budget: $250-300
+
+================================================================================
+ORDER DETAILS
+================================================================================
+
+ORDER #1: Panel13_Kallikrein2_Unmodified
+----------------------------------------
+Peptide Sequence: Glu-Gly-Ser-Cys-Tyr-Gly-Thr-Glu
+One-letter code: EGSCY GTE
+Target: Kallikrein 2
+
+Specifications:
+  • N-terminus: Free (NH3+)
+  • C-terminus: Free (COO-)
+  • Purity: ≥95% by HPLC
+  • Amount: 1-2 mg
+  • Salt form: TFA salt acceptable
+  • Analysis: HPLC chromatogram + MS analysis required
+
+Estimated Cost: $100-120
+
+
+ORDER #2: Panel13_Kallikrein2_BasicInhibitor
+--------------------------------------------
+Peptide Sequence: Ac-Glu-Gly-Ser-Cys-Tyr-Gly-Thr-Glu-NH2
+One-letter code: Ac-EGSCYGTE-NH2
+Target: Kallikrein 2
+
+Specifications:
+  • N-terminus: Acetylated (Ac-)
+  • C-terminus: Amidated (-NH2)
+  • Purity: ≥95% by HPLC
+  • Amount: 1-2 mg
+  • Salt form: TFA salt acceptable
+  • Modifications: N-terminal acetylation + C-terminal amidation
+  • Analysis: HPLC chromatogram + MS analysis required
+
+Estimated Cost: $150-180
+
+
+================================================================================
+TOTAL ESTIMATED COST: $250-300
+================================================================================
+
+
+================================================================================
+SHIPPING & DELIVERY
+================================================================================
+
+Preferred turnaround: 2-3 weeks
+Shipping address: [Your Address]
+Contact email: [Your Email]
+Phone: [Your Phone]
+
+
+================================================================================
+PAYMENT
+================================================================================
+
+Payment method: [Credit Card / PO / Invoice]
+Billing address: [If different from shipping]
+
+
+================================================================================
+SPECIAL NOTES
+================================================================================
+
+• This is for academic research (please apply any available discounts)
+• Both peptides are for the same project - testing substrate vs inhibitor activity
+• Quality control documents (HPLC, MS) are required for publication
+• If cost exceeds estimate, please contact before proceeding
+
+
+================================================================================
+RECOMMENDED VENDORS
+================================================================================
+
+GenScript (www.genscript.com/peptide-synthesis)
+  • Quote request: Use online form or email peptide@genscript.com
+  • Mention academic discount
+
+LifeTein (www.lifetein.com)
+  • Quote request: sales@lifetein.com
+  • Good academic pricing
+
+Biomatik (www.biomatik.com)
+  • Quote request: Use online quote tool
+  • Custom modifications expertise
+
+GeneCust (www.genecust.com) [EU-based]
+  • Quote request: info@genecust.com
+  • Competitive international pricing
+
+
+================================================================================
+ANTICIPATED TESTING PLAN
+================================================================================
+
+Upon receipt of peptides:
+
+1. Verify purity via provided HPLC/MS data
+2. Dissolve in appropriate buffer (DMSO or PBS)
+3. Prepare stock solutions (1-10 mM)
+4. Test inhibitory activity against Kallikrein 2:
+   - Use fluorogenic substrate
+   - Test concentration range: 0.1 nM to 100 µM
+   - Determine IC50 values for both peptides
+5. Compare results:
+   - Unmodified should be poor inhibitor (substrate?)
+   - Ac-peptide-NH2 should show strong inhibition
+
+Expected outcome: Proof that chemical modifications convert binding peptide to functional inhibitor
+
+
+================================================================================
+ALTERNATIVE ORDERS (if budget allows)
+================================================================================
+
+If budget extends to $350-400, also order:
+
+ORDER #3: Panel14_MMP1_BasicInhibitor
+--------------------------------------
+Peptide Sequence: Ac-His-Pro-Glu-Arg-Pro-Phe-Gly-Trp-NH2
+One-letter code: Ac-HPERP FGW-NH2
+Target: MMP1 (Collagenase-1)
+Binding affinity: -11.88 kcal/mol (BEST in panel)
+
+Specifications:
+  • N-terminus: Acetylated (Ac-)
+  • C-terminus: Amidated (-NH2)
+  • Purity: ≥95% by HPLC
+  • Amount: 1-2 mg
+
+Additional cost: $150-180
+
+
+================================================================================
+QUESTIONS FOR VENDOR
+================================================================================
+
+Before finalizing order, ask:
+
+1. What is the exact cost for each peptide at 95% purity, 1-2 mg?
+2. Is there an academic discount available?
+3. What is the turnaround time?
+4. What quality control documents are provided (HPLC, MS)?
+5. What is the best storage condition upon receipt?
+6. Is there a discount for ordering multiple peptides?
+7. Can you provide the peptide in lyophilized form?
+
+
+================================================================================
+PROJECT BACKGROUND (For Vendor Context)
+================================================================================
+
+These peptides were computationally designed using:
+  • Generative Adversarial Networks (GANs) trained on protease substrate data
+  • Molecular docking simulation (AutoDock Vina)
+  • Drug-likeness assessment
+  • Inhibitor modification design
+
+Purpose: Validate computational predictions and test inhibitor vs substrate activity
+
+This is part of research into novel protease inhibitors for sepsis treatment.
+
+
+================================================================================
+CONTACT INFORMATION
+================================================================================
+
+Principal Investigator: [Name]
+Institution: [Institution]
+Department: [Department]
+Email: [Email]
+Phone: [Phone]
+
+For technical questions about the peptides, contact: [Your email]
+
+================================================================================
