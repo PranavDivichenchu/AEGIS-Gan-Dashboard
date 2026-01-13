@@ -12,140 +12,74 @@ header-includes:
 output: pdf_document
 ---
 
-# \hfill Journal #11
+# \hfill Journal #7
 ## \hfill Pranav Divichenchu
 \vspace{-0.5em}
-\hfill November 17, 2025
+\hfill January 10, 2026
 
 \vspace{1em}
 \hrule
 \vspace{0.5em}
 
-**Research Topic:** Design a Generative Adverserial Network (GAN) to design novel protein sequences that are able to predict and enhance model cleavage. 
+**Research Topic:** Design a Generative Adverserial Network (GAN) to design novel protein sequences that are able to predict and enhance model cleavage.
 
+**Weekly Goal (1/6/26 - 1/10/26):**
 
-**November Goal:** (By 11/30)
+Submit comprehensive experimental design document to Dr. Hanson for review and approval.
 
-Validate all computational predictions against published literature to ensure the GAN-generated peptides fall within expected binding affinity ranges for sepsis-related proteases.
+Begin preparation for wet-lab validation by researching proper fluorometric assay techniques and plate reader operation.
 
-Complete comprehensive analysis of peptidomimetic inhibitor designs and generate synthesis protocols with cost estimates and vendor recommendations for experimental validation.
-
-Scale up GAN training using cloud infrastructure (Google Colab) to generate larger, more diverse peptide libraries and improve model performance.
-
-Freeze and document the complete Python environment to ensure reproducibility of all computational results.
-
-
-Conduct binding site specificity analysis to determine optimal peptide lengths and sequences for each target protease's binding pocket.
-
+Familiarize with best practices for handling fluorogenic substrates and enzyme kinetics measurements.
 
 \vspace{1em}
 \hrule
 \vspace{1em}
 
-## Daily Log (11/10/25-11/17/25)
-   
-### Tuesday November 11
+## Daily Log (1/6/26-1/10/26)
 
-  - Full Pipeline Execution: Ran complete docking simulation pipeline across all three GAN models (SupremeGAN, Conditional GAN, WGAN-GP)
-    - Generated 100+ peptide sequences per protease target
-    - Processed structure predictions through ESMFold API
-    - Completed molecular docking analysis with AutoDock Vina
-    - Collected comprehensive binding affinity data for comparison analysis
+**Monday, 1/6/26:**
+Finalized the comprehensive experimental design document for the Kallikrein 2 substrate validation experiment. Made final revisions to ensure all sections met the experimental design rubric requirements, including clear problem statement, testable hypothesis with null hypothesis, explicitly defined independent and dependent variables, comprehensive controls (blanks and substrate-only), detailed materials list with vendor specifications and catalog numbers, step-by-step numbered procedures, safety considerations with MSDS references, and complete bibliography. The final document includes detailed protocols for the fluorometric substrate cleavage assay using EGSCYGTR-AMC peptide, with a total project budget of $949. Submitted the experimental design to Dr. Hanson for review and approval. The document outlines testing a single high-confidence GAN-designed peptide (EGSCYGTR, predicted binding affinity -9.72 kcal/mol) rather than the entire 27-peptide panel, allowing for thorough validation within budget constraints.
 
-  - Performance Monitoring: Tracked pipeline execution times and identified computational bottlenecks
-    - ESMFold API calls: primary time constraint (~10-15 seconds per structure)
-    - Docking calculations: secondary bottleneck (~5-8 seconds per peptide-protein pair)
-    - Total runtime: approximately 6-8 hours for complete pipeline
+**Wednesday, 1/8/26:**
+Followed up on the experimental design submission to Dr. Hanson. Currently awaiting feedback and approval to proceed with reagent ordering and equipment scheduling. Used the waiting period productively to review the experimental design document and identify any potential areas for revision based on Dr. Hanson's feedback. Began preliminary research into best practices for fluorometric enzyme assays, focusing on proper handling of AMC-conjugated substrates and common pitfalls in kinetic fluorescence measurements. Reviewed literature on AMC fluorophore characteristics, including optimal excitation/emission wavelengths (360 nm/460 nm), sensitivity to pH and temperature, and potential quenching effects. This preparation will be valuable when executing the actual assay.
 
-### Thursday November 13
+**Friday, 1/10/26:**
+Continued preparation for wet-lab validation by conducting in-depth research into practical aspects of the fluorometric substrate cleavage assay. Watched several instructional videos and tutorials on YouTube and vendor websites (Molecular Devices, BioTek, Corning) covering:
 
-  - GAN Performance Comparison: Comprehensive statistical analysis comparing SupremeGAN vs ConditionalGAN
-    - Analyzed 781 total docking results (536 ConditionalGAN, 245 SupremeGAN)
-    - ConditionalGAN mean affinity: -7.25 kcal/mol; SupremeGAN: -7.18 kcal/mol
-    - Statistical analysis revealed close performance (p-value for difference), validating ensemble approach
-    - ConditionalGAN achieved 23 excellent binders (<-10 kcal/mol) vs 5 for SupremeGAN
-    - Generated comprehensive visualizations: distribution plots, protease-specific comparisons, winner analysis
-    - Protease-level analysis: ConditionalGAN won 14 proteases, SupremeGAN won 13 proteases
+- Proper technique for preparing fluorogenic substrate stock solutions in DMSO
+- Best practices for enzyme handling and aliquoting to maintain activity
+- Plate reader operation and optimization of gain/sensitivity settings
+- Common sources of error in kinetic fluorescence assays (edge effects, evaporation, temperature drift)
+- Data analysis workflows for enzyme kinetics experiments
 
-  - 27-Peptide Panel Design: Created strategic ensemble selection leveraging both GAN models
-    - Selected best peptide per protease (27 proteases total) regardless of source model
-    - Final panel composition: ConditionalGAN contributed 14 peptides, SupremeGAN contributed 13 peptides
-    - Panel binding affinity range: -11.88 to -4.93 kcal/mol
-    - Binding categories: 2 excellent (<-10), 8 strong (-10 to -8), 12 good (-8 to -6), 5 moderate (>-6)
-    - Top candidates identified: Panel #14 (MMP1, -11.88), Panel #24 (Proteinase 3, -11.14), Panel #13 (Kallikrein 2, -9.72)
+Paid particular attention to videos demonstrating multichannel pipetting technique for adding enzyme to multiple wells simultaneously, which is critical for minimizing time differences in reaction initiation. Also reviewed protocols for maintaining sterile technique when working with recombinant proteins. This hands-on preparation through visual learning complements the written protocols in my experimental design and will help ensure successful execution when approval is granted and reagents arrive.
 
-  - Drug-Likeness Assessment: Comprehensive ADMET analysis of 27-peptide panel
-    - Calculated molecular properties: MW (689-1167 Da), hydrophobicity (GRAVY scores), net charge (-4 to +4)
-    - Assessed H-bond donors/acceptors, polar ratios, aromatic content for binding predictions
-    - Evaluated instability scores and peptide stability predictions
-    - Druglikeness scoring system developed: mean 68.5/100, range 45-95
-    - Identified 18 peptides with druglikeness score >=60 (suitable for development)
-    - Combined scoring approach: binding affinity + druglikeness for prioritization
-
-  - Inhibitor Design Development: Critical transformation from binding peptides to functional inhibitors
-    - Recognized fundamental distinction between substrate binding vs active site inhibition
-    - Designed protease class-specific chemical modifications:
-      * Caspases (6 peptides): N-acetylation + aldehyde/FMK warheads at C-terminus
-      * MMPs (6 peptides): Hydroxamate groups for zinc ion chelation
-      * Serine proteases (13 peptides): Boronic acid/aldehyde warheads
-      * Cysteine proteases (2 peptides): General inhibitor modifications
-    - Identified cleavage risk sites in 25/27 peptides using protease specificity analysis
-    - Generated 3 design versions per peptide: basic (Ac-peptide-NH2), enhanced (with warhead), cyclic
-    - Created detailed synthesis specifications with estimated costs per modification type
-
-### Sunday November 16
-
-  - Budget-Optimized Synthesis Planning: Strategic plan development for $200-400 budget constraint
-    - Scored all 27 peptides on multiple criteria: binding affinity, cleavage risk, clinical relevance
-    - Top candidates: Panel #14 (MMP1, -11.88, high clinical relevance), Panel #13 (Kallikrein 2, -9.72, LOW cleavage risk)
-    - Recommended approach: 1 peptide in 2 versions (unmodified + Ac-peptide-NH2) for proof-of-concept
-    - Selected Panel #13 (Kallikrein 2) as optimal candidate due to low cleavage risk, excellent binding, and cyclization potential
-    - Cost breakdown: unmodified peptide (~$110), basic inhibitor (~$170), total ~$280
-
-  - Experimental Validation Protocol Design: Fluorescence-based inhibition assay development
-    - Clarified assay mechanism: competitive inhibition using commercial fluorogenic substrate
-    - No fluorescent labeling needed on test peptides - they compete with fluorogenic substrate
-    - Identified complete reagent requirements: protease enzyme, fluorogenic substrate, test peptides, buffers
-    - Full budget analysis: ~$700-900 for complete testing with Kallikrein 2 enzyme
-    - Developed alternative strategy: Trypsin proof-of-concept (~$450 total) for budget feasibility
-
-
-## Timeline
+## Timeline Update
 
 \begin{longtable}{|p{3cm}|p{6cm}|p{6cm}|}
 \hline
 \textbf{Date} & \textbf{Goal} & \textbf{Met?} \\
 \hline
-9/25/2025 & Finish annotating GAN-related research papers and finalize which architectures to replicate & Done \\
+1/6/2026 & Design comprehensive experimental validation protocol for EGSCYGTR peptide & Done \\
 \hline
-10/06/2025 & Begin collecting cleavage data from Merops and test basic scraping scripts & Done \\
+1/6/2026 & Submit experimental design to Dr. Hanson for approval & Done \\
 \hline
-10/06/2025 & Finish dataset preprocessing + Download and Create initial GANs for testing & Done \\
+1/15/2026 & Receive approval and finalize equipment access & In Progress \\
 \hline
-10/15/2025 & Develop the structure for my own novel GAN and begin first round of training & Done \\
+1/20/2026 & Order all reagents for validation experiments & Pending \\
 \hline
-10/31/2025 & Compare results across GANs and refine input data or architecture for best performance & Done \\
-\hline
-11/15/2025 & Complete literature validation and peptidomimetic inhibitor design analysis & In Progress \\
-\hline
-11/22/2025 & Finish extended GAN training on Google Colab and freeze final models & Pending \\
+2/1/2026 & Execute initial substrate cleavage assays and collect kinetic data & Pending \\
 \hline
 \end{longtable}
 
-
 ## Reflection
 
-This week (November 11-16) marked the transition from pure computational model development to experimental preparation and validation planning. The most significant achievement was completing comprehensive statistical comparison between SupremeGAN and ConditionalGAN across 781 docking results. The analysis revealed nearly equivalent performance (ConditionalGAN: -7.25 kcal/mol mean, SupremeGAN: -7.18 kcal/mol mean, p > 0.05), which validated my decision to pursue an ensemble approach rather than selecting a single "best" model. This finding demonstrates that both GAN architectures successfully learned meaningful patterns from the MEROPS dataset, and combining their strengths through strategic selection yields optimal results.
+This week marked an important transition from experimental design to preparation for actual implementation. Submitting the comprehensive experimental design document to Dr. Hanson represents a critical milestone - moving from computational predictions to planning wet-lab validation. The waiting period for approval has been valuable for deepening my understanding of the practical techniques required for fluorometric assays.
 
-The creation of the 27-peptide panel represents the culmination of months of computational work. By selecting the best-performing peptide for each of the 27 sepsis-related proteases regardless of which GAN generated it, I created a diverse inhibitor library with binding affinities ranging from -11.88 to -4.93 kcal/mol. The drug-likeness assessment revealed that 18 of these 27 peptides (67%) have favorable druglikeness scores (>=60/100), suggesting they possess molecular properties suitable for therapeutic development. This analysis incorporated molecular weight, hydrophobicity, net charge, H-bond characteristics, and stability predictions - all critical factors for eventual in vivo efficacy.
+The video-based learning approach on Friday was particularly helpful. Seeing experienced researchers demonstrate proper pipetting technique, plate setup, and troubleshooting strategies provides context that written protocols alone cannot convey. Understanding common pitfalls like edge effects (wells on plate edges evaporating faster) and the importance of temperature equilibration will help me avoid these issues when I run the actual experiment.
 
-Most importantly, I recognized a fundamental conceptual gap that required immediate correction: designing peptides that bind strongly to proteases is not equivalent to designing functional inhibitors. Through this realization, I understood that many of my high-affinity peptides could function as excellent substrates that get cleaved rather than as inhibitors that block catalytic activity. This insight drove the development of protease class-specific chemical modification strategies. For the six caspase-targeting peptides, I designed N-terminal acetylation with aldehyde or fluoromethyl ketone (FMK) warheads. For the six MMP-targeting peptides, I incorporated hydroxamate groups for zinc ion chelation. The thirteen serine protease inhibitors received boronic acid or aldehyde warheads with protective terminal modifications. Each peptide now has three design versions: basic (Ac-peptide-NH2), enhanced (with class-specific warhead), and cyclic (for conformational constraint).
+One key insight from this week's research is the critical importance of timing when adding enzyme to substrate wells. The videos emphasized that even small delays (30-60 seconds) between adding enzyme to the first and last wells can introduce variability in kinetic measurements. This reinforces my decision to use a multichannel pipette and practice the motion before the actual experiment.
 
-The shift to experimental planning forced me to confront practical constraints that computational work abstracts away. With a realistic high school research budget of $200-400, I cannot afford to synthesize all 27 peptides or even conduct full validation experiments for a single candidate. This led to strategic prioritization using multi-criteria scoring (binding affinity, cleavage risk, clinical relevance, synthesis feasibility). Panel #13 targeting Kallikrein 2 emerged as the optimal proof-of-concept candidate: it has excellent predicted binding (-9.72 kcal/mol), low cleavage risk (no predicted cleavage sites), contains cysteine for potential cyclization, and targets a clinically-relevant protease in sepsis pathophysiology. The budget-optimized approach of synthesizing one peptide in two versions (unmodified control + basic inhibitor) for approximately $280 allows direct experimental comparison to validate the core hypothesis: chemical modifications convert binding peptides into functional inhibitors.
+The experimental design is now in Dr. Hanson's hands. Once approved, the next steps will be ordering the custom EGSCYGTR-AMC peptide (3-4 week synthesis time), purchasing the recombinant Kallikrein 2 enzyme, and scheduling plate reader access. The peptide synthesis timeline means that even with prompt approval, I'm realistically looking at mid-to-late February for running the actual assay. This timeline aligns well with the semester schedule and allows buffer for troubleshooting if needed.
 
-Understanding the fluorescence-based competitive inhibition assay mechanism was crucial for experimental planning. I initially misunderstood the assay, thinking my peptides would need fluorescent labels. Clarifying that the assay uses a commercial fluorogenic substrate that competes with my unlabeled inhibitor peptides was essential. However, complete experimental validation requires not just the synthesized peptides (~$280) but also the Kallikrein 2 enzyme (~$200-350), fluorogenic substrate (~$150-200), and assay consumables (~$50-100), totaling $680-930 - well beyond my budget. This realization necessitated development of alternative strategies: partnering with the Academies of Loudoun biochemistry lab for equipment access and reagent sharing, or starting with a cheaper proof-of-concept using Trypsin enzyme (~$450 total).
-
-Progress toward November goals is substantial but incomplete. I have successfully validated computational predictions statistically through GAN comparison, completed comprehensive peptidomimetic inhibitor designs with detailed synthesis protocols and vendor recommendations, and thoroughly documented the computational environment for reproducibility. The literature validation framework is established but not yet fully executed - this remains pending. Extended GAN training on Google Colab is also pending as I focused this week on converting computational results into actionable experimental plans rather than generating additional peptide libraries. Binding site specificity analysis has been incorporated throughout the inhibitor design process, though formalized quantitative analysis could be expanded.
-
-The next immediate steps are: (1) finalize collaboration arrangements with ACL's lab to secure equipment access and determine available reagents, (2) initiate peptide synthesis once lab collaboration and budget are confirmed, and (3) during the 2-3 week synthesis period, complete literature validation comparing my computational predictions to published inhibitor data and conduct any final computational analyses. The successful execution of even this single proof-of-concept experiment would provide invaluable experimental validation of the entire GAN → structure prediction → docking → inhibitor design pipeline, establishing a foundation for future expansion, publication, and potential research funding.
-
+Whether the experiment shows positive results (validating the GAN prediction) or negative results (revealing limitations in the computational approach), the data will provide valuable feedback for refining the machine learning model and understanding the relationship between predicted binding affinity and actual enzymatic cleavage.
