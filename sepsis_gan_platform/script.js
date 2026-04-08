@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 // Point to the backend server (Docker container URL in production, localhost in development)
-const BACKEND_PROD_URL = 'https://your-deployed-docker-backend.com'; // Replace with the actual URL where your Docker container runs
+const BACKEND_PROD_URL = 'https://aegis-gan-dashboard.onrender.com';
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
     ? 'http://localhost:8001' 
     : BACKEND_PROD_URL;
