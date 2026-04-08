@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AegisGAN — Sepsis AI Discovery Platform</title>
+    <meta name="description" content="First multi-architecture GAN pipeline for computational sepsis protease inhibitor design.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo">
+                <i data-lucide="dna"></i>
+                Aegis<span class="text-teal">GAN</span>
+            </div>
+            <div class="nav-links">
+                <button class="nav-link active" id="nl-home"     onclick="showSection('home')">Home</button>
+                <button class="nav-link"        id="nl-database" onclick="showSection('database')">Database</button>
+                <button class="nav-link"        id="nl-pipeline" onclick="showSection('pipeline')">Discovery Pipeline</button>
+                <button class="nav-link"        id="nl-about"    onclick="showSection('about')">About</button>
+            </div>
+            <div class="nav-actions">
+                <div class="api-pill">
+                    <span class="dot offline" id="api-dot"></span>
+                    <span id="api-label">API offline</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ══════ HOME ══════ -->
+    <section id="home" class="app-section active">
+        <div class="container">
+            <div class="hero-wrap">
+                <div class="eyebrow"><i data-lucide="activity"></i> 27 Proteases · 3 GAN Architectures · ESMFold Validated</div>
+                <h1 class="hero-title">First Multi-Architecture<br><span class="text-teal">GAN Pipeline</span> for Sepsis</h1>
+                <p class="hero-subtitle">Reversing the $62B systemic sepsis cascade by computationally designing novel protease inhibitors — validated by AutoDock Vina at 0.375 Å grid spacing against TOST bioequivalence bounds.</p>
+                <div class="btn-row">
+                    <button class="btn-primary" onclick="showSection('pipeline')">
+                        <i data-lucide="flask-conical"></i> Open Discovery Pipeline
+                    </button>
+                    <button class="btn-secondary" onclick="showSection('database')">
+                        <i data-lucide="database"></i> Browse Inhibitor DB
+                    </button>
+                </div>
+                <div class="stats-strip">
+                    <div class="stat-item"><div class="stat-num">28</div><div class="stat-label">Excellent Binders</div></div>
+                    <div class="stat-item"><div class="stat-num">−11.88</div><div class="stat-label">Peak Affinity (kcal/mol)</div></div>
+                    <div class="stat-item"><div class="stat-num">11,551</div><div class="stat-label">MEROPS Training Events</div></div>
+                </div>
+            </div>
+
+            <div class="grid-3">
+                <div class="card">
+                    <div class="card-icon"><i data-lucide="database"></i></div>
+                    <h3>MEROPS Extraction</h3>
+                    <p>11,551 experimentally confirmed P4–P4′ 8-mer binding windows isolated across 27 sepsis proteases from MEROPS release 12.4.</p>
+                </div>
+                <div class="card featured">
+                    <div class="card-icon"><i data-lucide="cpu"></i></div>
+                    <h3>SupremeGAN Engine</h3>
+                    <p>Novel architecture combining Spectral Normalization with 4-head Self-Attention. Conditioned on enzyme class labels to prevent mode collapse.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon"><i data-lucide="microscope"></i></div>
+                    <h3>ESMFold & AutoDock</h3>
+                    <p>End-to-end: ESMFold 3D structure folding (10–15 s/seq) → AutoDock Vina docking at strict 0.375 Å atomic grid-spacing parameters.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════ DATABASE ══════ -->
+    <section id="database" class="app-section">
+        <div class="container">
+            <div class="section-head">
+                <h2>Inhibitor <span class="text-teal">Database</span></h2>
+                <p>Top 14 validated synthetic candidate panels. Sorted by binding affinity; click any row to inspect full molecular and clinical data.</p>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Target Protease</th>
+                            <th>Class</th>
+                            <th>P4–P4′ Sequence</th>
+                            <th>Covalent Form</th>
+                            <th>Novelty</th>
+                            <th>ΔG (kcal/mol)</th>
+                            <th>Validation</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="inhibitor-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════ PIPELINE ══════ -->
+    <section id="pipeline" class="app-section">
+        <div class="container pipeline-wrap">
+
+            <!-- Step nav bar -->
+            <div class="step-nav">
+                <button class="snb active" id="snb-1" onclick="goToStep(1)">
+                    <span class="snb-num" id="sn-1">1</span>
+                    <span class="snb-text">
+                        <span class="snb-title">Data Ingestion</span>
+                        <span class="snb-sub">Select & preprocess MEROPS</span>
+                    </span>
+                </button>
+                <button class="snb" id="snb-2" onclick="goToStep(2)" disabled>
+                    <span class="snb-num" id="sn-2">2</span>
+                    <span class="snb-text">
+                        <span class="snb-title">Train GAN</span>
+                        <span class="snb-sub">Via backend API</span>
+                    </span>
+                </button>
+                <button class="snb" id="snb-3" onclick="goToStep(3)" disabled>
+                    <span class="snb-num" id="sn-3">3</span>
+                    <span class="snb-text">
+                        <span class="snb-title">Generate Sequences</span>
+                        <span class="snb-sub">Live inference</span>
+                    </span>
+                </button>
+                <button class="snb" id="snb-4" onclick="goToStep(4)" disabled>
+                    <span class="snb-num" id="sn-4">4</span>
+                    <span class="snb-text">
+                        <span class="snb-title">ADMET + FDA Score</span>
+                        <span class="snb-sub">Real chemistry calc</span>
+                    </span>
+                </button>
+            </div>
+
+            <!-- ── Page 1: Data Ingestion ── -->
+            <div class="step-page active" id="step-page-1">
+                <div class="step-header">
+                    <div class="eyebrow">Step 01</div>
+                    <h2>Data Ingestion & <span class="text-teal">Preprocessing</span></h2>
+                    <p>Select the built-in sepsis MEROPS dataset or upload your own cleavage-site export to retarget the pipeline for a different disease. Custom uploads reshape the GAN's conditioning space.</p>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-group">
+                        <div class="form-label">Dataset Source</div>
+                        <div class="radio-cards">
+                            <label class="rc selected" id="rc-builtin" onclick="selectSource('builtin')">
+                                <input type="radio" name="src" value="builtin" checked>
+                                <span class="rc-icon"><i data-lucide="database"></i></span>
+                                <span class="rc-text">
+                                    <strong>Built-in Sepsis MEROPS</strong>
+                                    <span>11,551 confirmed cleavage events · 27 proteases · 4 enzyme classes</span>
+                                </span>
+                                <span class="rc-tag">Recommended</span>
+                            </label>
+                            <label class="rc" id="rc-custom" onclick="selectSource('custom')">
+                                <input type="radio" name="src" value="custom">
+                                <span class="rc-icon"><i data-lucide="upload-cloud"></i></span>
+                                <span class="rc-text">
+                                    <strong>Upload Custom MEROPS Export</strong>
+                                    <span>Retarget for oncology, neurodegeneration, autoimmune, or any other pathway</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="custom-upload-area" class="hidden">
+                        <div class="upload-zone">
+                            <i data-lucide="file-up" style="width:32px;height:32px"></i>
+                            <p>Drop your MEROPS CSV/TSV here, or <label for="merops-file" class="link-label">browse</label></p>
+                            <input type="file" id="merops-file" accept=".csv,.tsv" style="display:none" onchange="handleFileUpload(this)">
+                            <p id="upload-filename" class="text-sm text-muted"></p>
+                        </div>
+                        <div class="form-group">
+                            <div class="form-label">Condition / Disease Label</div>
+                            <input type="text" class="form-input" id="custom-condition" placeholder="e.g. Triple-Negative Breast Cancer, Alzheimer's disease">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div class="form-label">Binding Window</div>
+                            <select class="form-select" id="window-size">
+                                <option value="8" selected>8-mer P4–P4′ (standard)</option>
+                                <option value="10">10-mer P5–P5′ (extended)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <div class="form-label">Enzyme Class Filter</div>
+                            <select class="form-select" id="enzyme-filter">
+                                <option value="all">All Classes</option>
+                                <option value="serine">Serine Proteases Only</option>
+                                <option value="cysteine">Cysteine / Caspases Only</option>
+                                <option value="mmp">MMPs Only</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn-action" onclick="runPreprocessing(event)">
+                        <i data-lucide="cpu"></i> Preprocess & Validate Dataset
+                    </button>
+                </div>
+
+                <div id="pp-result" class="result-panel hidden">
+                    <div class="result-panel-top">
+                        <i data-lucide="check-circle-2"></i> Dataset validated and ready for training
+                    </div>
+                    <div class="result-panel-body">
+                        <div class="result-stats">
+                            <div class="rstat"><span class="rstat-label">Sequences Loaded</span><span class="rstat-val" id="pp-count">—</span></div>
+                            <div class="rstat"><span class="rstat-label">Unique Proteases</span><span class="rstat-val" id="pp-proteases">—</span></div>
+                            <div class="rstat"><span class="rstat-label">Condition</span><span class="rstat-val" id="pp-condition">—</span></div>
+                            <div class="rstat"><span class="rstat-label">Window Size</span><span class="rstat-val" id="pp-window">—</span></div>
+                        </div>
+                        <button class="btn-next" onclick="unlockAndGo(2)">
+                            Proceed to Train GAN <i data-lucide="arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Page 2: Train GAN ── -->
+            <div class="step-page" id="step-page-2">
+                <div class="step-header">
+                    <div class="eyebrow">Step 02</div>
+                    <h2>Launch <span class="text-teal">GAN Training</span></h2>
+                    <p>Training runs via your local FastAPI backend. The loss curves are real — pulled from the training job every 500 ms. The backend simulates convergence dynamics calibrated to actual SupremeGAN training logs when PyTorch models are not loaded.</p>
+                </div>
+
+                <div id="api-train-warn" class="alert alert-warning hidden">
+                    <i data-lucide="alert-triangle"></i>
+                    <div>Backend API is offline. Start it with <code>python api.py</code> from the project root, then refresh. Training will poll the real job endpoint.</div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div class="form-label">Architecture</div>
+                            <select class="form-select" id="train-arch">
+                                <option value="supreme">SupremeGAN — SN + Self-Attention (recommended)</option>
+                                <option value="conditional">ConditionalGAN — Class-conditioned</option>
+                                <option value="wgan">WGAN-GP — Wasserstein + Gradient Penalty</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <div class="form-label">Epochs</div>
+                            <input type="number" class="form-input" id="train-epochs" value="200" min="10" max="500">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div class="form-label">Latent Dimension</div>
+                            <select class="form-select" id="train-latent">
+                                <option value="128">128 — Fast convergence</option>
+                                <option value="256" selected>256 — Balanced (default)</option>
+                                <option value="512">512 — High capacity</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <div class="form-label">Learning Rate</div>
+                            <select class="form-select" id="train-lr">
+                                <option value="0.0001">1e-4 — Conservative</option>
+                                <option value="0.0002" selected>2e-4 — Default (Adam)</option>
+                                <option value="0.0004">4e-4 — Aggressive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn-action" id="train-btn" onclick="runTraining()">
+                        <i data-lucide="play-circle"></i> Launch Training Run
+                    </button>
+                </div>
+
+                <div id="train-panel" class="train-panel hidden">
+                    <div class="train-top">
+                        <span class="running-badge" id="train-status-badge"><span class="pulse"></span> <span id="train-status-text">Running</span></span>
+                        <span class="epoch-counter" id="train-epoch-label">Epoch 0 / 200</span>
+                    </div>
+                    <div class="progress-rail"><div class="progress-fill" id="train-bar"></div></div>
+                    <div class="loss-grid">
+                        <div class="loss-card">
+                            <div class="loss-card-label"><span class="ldot" style="background:#f04060"></span>Discriminator Loss</div>
+                            <div class="loss-card-val" id="d-loss">—</div>
+                        </div>
+                        <div class="loss-card">
+                            <div class="loss-card-label"><span class="ldot" style="background:#19e6c0"></span>Generator Loss</div>
+                            <div class="loss-card-val" id="g-loss">—</div>
+                        </div>
+                        <div class="loss-card">
+                            <div class="loss-card-label"><span class="ldot" style="background:#818cf8"></span>GP Penalty</div>
+                            <div class="loss-card-val" id="gp-loss">—</div>
+                        </div>
+                        <div class="loss-card">
+                            <div class="loss-card-label">Mode Collapse</div>
+                            <div class="loss-card-val text-teal" id="collapse-status">Monitoring…</div>
+                        </div>
+                    </div>
+                    <div class="train-log" id="train-log"></div>
+                    <div id="train-done-actions" class="hidden">
+                        <div class="success-row">
+                            <i data-lucide="check-circle-2"></i>
+                            <div>
+                                <strong>Training complete — checkpoint saved</strong>
+                                <p class="text-sm text-muted" id="train-summary-text"></p>
+                            </div>
+                        </div>
+                        <button class="btn-next" onclick="unlockAndGo(3)">
+                            Generate sequences with trained model <i data-lucide="arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Page 3: Generate ── -->
+            <div class="step-page" id="step-page-3">
+                <div class="step-header">
+                    <div class="eyebrow">Step 03</div>
+                    <h2>Generate <span class="text-teal">Inhibitor Candidates</span></h2>
+                    <p>The trained generator samples conditioned on your protease target. When the backend is online, this calls the real PyTorch model. Sequences seeded into Step 4 automatically.</p>
+                </div>
+
+                <div id="gen-mode-banner" class="alert alert-info hidden">
+                    <i data-lucide="info"></i>
+                    <div id="gen-mode-text">Checking backend…</div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div class="form-label">Target Protease</div>
+                            <select class="form-select" id="gen-protease">
+                                <option value="Caspase-1">Caspase-1</option>
+                                <option value="Caspase-3">Caspase-3</option>
+                                <option value="Cathepsin G">Cathepsin G</option>
+                                <option value="Factor IXa">Factor IXa</option>
+                                <option value="Granzyme B">Granzyme B</option>
+                                <option value="Kallikrein 1">Kallikrein 1</option>
+                                <option value="Kallikrein 2">Kallikrein 2</option>
+                                <option value="MMP1">MMP1 (Collagenase-1)</option>
+                                <option value="MMP12">MMP12</option>
+                                <option value="Thrombin">Thrombin (F2)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <div class="form-label">Number of Candidates</div>
+                            <input type="number" class="form-input" id="gen-samples" value="6" min="1" max="20">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Covalent Payload Modality</div>
+                        <select class="form-select" id="gen-modality">
+                            <option value="boronic">Boronic Acid −B(OH)₂ — Serine / Cysteine proteases</option>
+                            <option value="aldehyde">Peptide Aldehyde −CHO — Cysteine / Caspase traps</option>
+                            <option value="hydroxamate">Hydroxamate −NHOH — MMP zinc chelation</option>
+                        </select>
+                    </div>
+                    <button class="btn-action" id="gen-btn" onclick="runGeneration()">
+                        <i data-lucide="zap"></i> Generate Candidates
+                    </button>
+                </div>
+
+                <div id="gen-result" class="result-panel hidden">
+                    <div class="result-panel-top">
+                        <i data-lucide="dna"></i>
+                        <span id="gen-result-title">Generated sequences</span>
+                        <span id="gen-source-tag" class="mock-tag" style="margin-left:auto">Mock</span>
+                    </div>
+                    <div class="result-panel-body">
+                        <ul class="seq-list" id="gen-list"></ul>
+                        <button class="btn-next" onclick="unlockAndGo(4)">
+                            Profile with ADMET + FDA scoring <i data-lucide="arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Page 4: ADMET ── -->
+            <div class="step-page" id="step-page-4">
+                <div class="step-header">
+                    <div class="eyebrow">Step 04</div>
+                    <h2>ADMET & <span class="text-teal">FDA Viability</span></h2>
+                    <p>Real property calculations using <code>calculate_druglike_properties.py</code> — actual amino acid mass table, Kyte-Doolittle hydrophobicity, and H-bond donor/acceptor counts. FDA phase I/II scoring uses Lipinski Ro5 + TOST bounds. Not a validated assay — supports pre-IND candidate ranking only.</p>
+                </div>
+
+                <div class="alert alert-info">
+                    <i data-lucide="info"></i>
+                    <div>MW, logP, net charge, and H-bond counts are calculated directly from the sequence using your local <code>calculate_druglike_properties.py</code> via the FastAPI backend. AutoDock docking affinity is estimated from a proxy formula; real docking requires PDB structure + Vina binary.</div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-group">
+                        <div class="form-label">Select Candidate (from Step 3)</div>
+                        <select class="form-select" id="admet-seq-select">
+                            <option value="">— Complete Step 3 first —</option>
+                        </select>
+                    </div>
+                    <button class="btn-action" onclick="runADMET(event)">
+                        <i data-lucide="shield-check"></i> Run ADMET Screen
+                    </button>
+                </div>
+
+                <div id="admet-result" class="result-panel hidden">
+                    <div class="result-panel-top">
+                        <i data-lucide="activity"></i>
+                        <span>Pharmacokinetic Profile</span>
+                        <span id="admet-seq-tag" class="mono text-sm text-muted" style="margin-left:auto;font-size:.78rem"></span>
+                    </div>
+                    <div class="result-panel-body">
+                        <!-- 🚀 NOVEL FEATURES WIDGETS 🚀 -->
+                        <div class="visual-widgets-row hidden" id="advanced-visuals">
+                            <div class="widget-card radar-widget">
+                                <h4 class="widget-title">Drug-likeness Radar</h4>
+                                <div style="position:relative; height: 260px; width:100%">
+                                    <canvas id="admetRadarChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="widget-card 3d-widget">
+                                <h4 class="widget-title">Predicted 3D Binding Pose (ESMFold Proxy)</h4>
+                                <div id="mol-viewer-container" style="position:relative; width: 100%; height: 260px; border-radius: 8px; overflow:hidden; background: rgba(0,0,0,0.6);">
+                                    <!-- 3Dmol will mount here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="admet-grid">
+                            <div class="admet-card">
+                                <span class="admet-label">Mol. Weight</span>
+                                <span class="admet-val" id="a-mw">—</span>
+                                <span class="admet-sub">Ro5: &lt;500 Da preferred</span>
+                            </div>
+                            <div class="admet-card">
+                                <span class="admet-label">logP</span>
+                                <span class="admet-val" id="a-logp">—</span>
+                                <span class="admet-sub">Ro5: &lt;5 preferred</span>
+                            </div>
+                            <div class="admet-card">
+                                <span class="admet-label">H-Bond Donors</span>
+                                <span class="admet-val" id="a-hbd">—</span>
+                                <span class="admet-sub">Ro5: ≤5</span>
+                            </div>
+                            <div class="admet-card">
+                                <span class="admet-label">H-Bond Acceptors</span>
+                                <span class="admet-val" id="a-hba">—</span>
+                                <span class="admet-sub">Ro5: ≤10</span>
+                            </div>
+                            <div class="admet-card">
+                                <span class="admet-label">Oral Absorption (F%)</span>
+                                <span class="admet-val" id="a-abs">—</span>
+                                <span class="admet-sub">GI permeability est.</span>
+                            </div>
+                            <div class="admet-card">
+                                <span class="admet-label">Bioavailability</span>
+                                <span class="admet-val" id="a-bio">—</span>
+                                <span class="admet-sub">Caco-2 model proxy</span>
+                            </div>
+                            <div class="admet-card">
+                                <span class="admet-label">Half-Life (t½)</span>
+                                <span class="admet-val" id="a-hl">—</span>
+                                <span class="admet-sub">Hepatic microsomal est.</span>
+                            </div>
+                            <div class="admet-card admet-card warn">
+                                <span class="admet-label">Toxicity Risk</span>
+                                <span class="admet-val rose" id="a-tox">—</span>
+                                <span class="admet-sub">hERG + AMES proxy</span>
+                            </div>
+                            <div class="admet-card admet-card warn">
+                                <span class="admet-label">Est. Docking ΔG</span>
+                                <span class="admet-val rose" id="a-dg">—</span>
+                                <span class="admet-sub">AutoDock Vina proxy</span>
+                            </div>
+                        </div>
+
+                        <div class="fda-banner">
+                            <div class="fda-left">
+                                <div class="fda-icon"><i data-lucide="award"></i></div>
+                                <div>
+                                    <div class="fda-title">FDA Phase I/II Viability Score</div>
+                                    <div class="fda-rationale" id="fda-rationale">Calculating…</div>
+                                </div>
+                            </div>
+                            <div class="fda-right">
+                                <span class="fda-score" id="fda-pct">—</span>
+                                <span class="fda-tier" id="fda-tier">—</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-24" style="display:flex; gap:12px">
+                            <button class="btn-sm" onclick="profileAll()">
+                                <i data-lucide="layers" style="width:14px;height:14px"></i> Profile & rank all candidates
+                            </button>
+                            <button class="btn-sm btn-synth" onclick="calculateSynthesisCost()">
+                                <i data-lucide="flask-conical" style="width:14px;height:14px"></i> Request SPPS Synthesis Cost
+                            </button>
+                        </div>
+
+                        <!-- Synthesis Breakdown Panel -->
+                        <div id="synthesis-panel" class="hidden mt-16 synthesis-card">
+                            <div class="synth-top">
+                                <div class="synth-title"><i data-lucide="dollar-sign"></i> <span>Automated Solid-Phase Peptide Synthesis (SPPS) Breakdown</span></div>
+                                <span class="synth-badge">Fmoc Chemistry</span>
+                            </div>
+                            <div class="synth-grid">
+                                <div class="synth-item"><span>Amino Acid Building Blocks</span><strong id="syn-aa">...</strong></div>
+                                <div class="synth-item"><span>Coupling Reagents (HBTU/DIPEA)</span><strong id="syn-reagents">...</strong></div>
+                                <div class="synth-item"><span>Cleavage Cocktail & Cleans</span><strong id="syn-solvents">...</strong></div>
+                                <div class="synth-item"><span>HPLC Purification (95%)</span><strong id="syn-hplc">...</strong></div>
+                            </div>
+                            <div class="synth-total">
+                                <span>Estimated Wet-Lab Synthesis Cost</span>
+                                <strong class="text-teal" id="syn-total">...</strong>
+                            </div>
+                        </div>
+
+                        <div id="all-cands" class="hidden mt-16">
+                            <div class="divider-h"></div>
+                            <h4 style="font-size:.9rem; margin-bottom:12px; color:var(--muted)">ALL CANDIDATES — FDA RANKING</h4>
+                            <table class="cand-table" id="cand-table-body"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════ ABOUT ══════ -->
+    <section id="about" class="app-section">
+        <div class="container">
+            <div class="section-head"><h2>About <span class="text-teal">AegisGAN</span></h2></div>
+            <div class="about-card">
+                <p>AegisGAN is a senior research thesis developed at the <strong style="color:var(--text)">Academy of Engineering and Technology</strong> by <strong style="color:var(--text)">Pranav Divichenchu</strong>. The project applies generative adversarial networks trained on MEROPS cleavage data to computationally design novel peptide inhibitors targeting the sepsis protease cascade.</p>
+                <p>Three GAN architectures were implemented and benchmarked: WGAN-GP, cGAN, and <em>SupremeGAN</em> — a novel architecture combining Spectral Normalization with 4-head Self-Attention. Generated sequences were validated through ESMFold 3D structure prediction and AutoDock Vina rigid molecular docking.</p>
+                <div class="feat-list">
+                    <div class="feat-item"><i data-lucide="book-open"></i> Validated against 11,551 MEROPS cleavage events</div>
+                    <div class="feat-item"><i data-lucide="award"></i> TOST bioequivalence bounds met across all 4 enzyme classes</div>
+                    <div class="feat-item"><i data-lucide="flask-conical"></i> $949 wet-lab synthesis plan costed for Kallikrein 2 inhibitor</div>
+                    <div class="feat-item"><i data-lucide="globe"></i> Presented at AET Senior Research & RSEF 2026</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════ MODAL ══════ -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-head">
+                <div>
+                    <h3 id="modal-target">Protease Target</h3>
+                    <span id="modal-class" class="badge-cls" style="margin-top:4px;display:inline-block">Class</span>
+                </div>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="m-row">
+                    <span class="m-label">P4–P4′ Sequence</span>
+                    <span class="m-val" id="modal-seq">—</span>
+                </div>
+                <div class="m-row">
+                    <span class="m-label">Binding Affinity</span>
+                    <span class="m-val teal" id="modal-affinity">—</span>
+                </div>
+                <div class="m-row">
+                    <span class="m-label">Clinical Formulation</span>
+                    <span class="m-val" id="modal-inhibitor" style="font-size:.85rem; word-break:break-word">—</span>
+                </div>
+                <div class="m-row">
+                    <span class="m-label">Validation Level</span>
+                    <p class="m-val" id="modal-validation">—</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal()">Close</button>
+                <button class="btn-primary" onclick="showSection('pipeline')"><i data-lucide="flask-conical"></i> Run in Pipeline</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p class="footer-text">AegisGAN · Pranav Divichenchu · Academy of Engineering and Technology · RSEF 2026</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
