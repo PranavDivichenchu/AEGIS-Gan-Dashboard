@@ -6,7 +6,11 @@
 //  - Honest mode badges on all panels
 // ═══════════════════════════════════════════════════════════════════════════
 
-const API = 'http://localhost:8001';
+// Point to the backend server (Docker container URL in production, localhost in development)
+const BACKEND_PROD_URL = 'https://your-deployed-docker-backend.com'; // Replace with the actual URL where your Docker container runs
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://localhost:8001' 
+    : BACKEND_PROD_URL;
 let apiOnline = false;
 let pipelineState = {
     step: 1,
