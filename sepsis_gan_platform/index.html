@@ -13,14 +13,20 @@
 </head>
 <body>
 
+    <!-- Scroll Progress Bar -->
+    <div id="scroll-progress"></div>
+
+    <!-- Animated Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
     <!-- Navbar -->
-    <nav class="navbar">
+    <nav class="navbar" id="main-navbar">
         <div class="nav-content">
             <div class="logo">
                 <i data-lucide="dna"></i>
                 Aegis<span class="text-teal">GAN</span>
             </div>
-            <div class="nav-links">
+            <div class="nav-links" id="nav-links">
                 <button class="nav-link active" id="nl-home"     onclick="showSection('home')">Home</button>
                 <button class="nav-link"        id="nl-database" onclick="showSection('database')">Database</button>
                 <button class="nav-link"        id="nl-pipeline" onclick="showSection('pipeline')">Discovery Pipeline</button>
@@ -32,6 +38,9 @@
                     <span id="api-label">API offline</span>
                 </div>
             </div>
+            <button class="menu-toggle" id="menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </nav>
 
@@ -39,10 +48,10 @@
     <section id="home" class="app-section active">
         <div class="container">
             <div class="hero-wrap">
-                <div class="eyebrow"><i data-lucide="activity"></i> 27 Proteases · 3 GAN Architectures · ESMFold Validated</div>
-                <h1 class="hero-title">First Multi-Architecture<br><span class="text-teal">GAN Pipeline</span> for Sepsis</h1>
-                <p class="hero-subtitle">Reversing the $62B systemic sepsis cascade by computationally designing novel protease inhibitors — validated by AutoDock Vina at 0.375 Å grid spacing against TOST bioequivalence bounds.</p>
-                <div class="btn-row">
+                <div class="eyebrow reveal"><i data-lucide="activity"></i> 27 Proteases · 3 GAN Architectures · ESMFold Validated</div>
+                <h1 class="hero-title reveal reveal-delay-1">First Multi-Architecture<br><span class="text-teal">GAN Pipeline</span> for Sepsis</h1>
+                <p class="hero-subtitle reveal reveal-delay-2">Reversing the $62B systemic sepsis cascade by computationally designing novel protease inhibitors — validated by AutoDock Vina at 0.375 Å grid spacing against TOST bioequivalence bounds.</p>
+                <div class="btn-row reveal reveal-delay-3">
                     <button class="btn-primary" onclick="showSection('pipeline')">
                         <i data-lucide="flask-conical"></i> Open Discovery Pipeline
                     </button>
@@ -50,25 +59,25 @@
                         <i data-lucide="database"></i> Browse Inhibitor DB
                     </button>
                 </div>
-                <div class="stats-strip">
-                    <div class="stat-item"><div class="stat-num">28</div><div class="stat-label">Excellent Binders</div></div>
-                    <div class="stat-item"><div class="stat-num">−11.88</div><div class="stat-label">Peak Affinity (kcal/mol)</div></div>
-                    <div class="stat-item"><div class="stat-num">11,551</div><div class="stat-label">MEROPS Training Events</div></div>
+                <div class="stats-strip reveal reveal-delay-3">
+                    <div class="stat-item"><div class="stat-num" data-count="28">0</div><div class="stat-label">Excellent Binders</div></div>
+                    <div class="stat-item"><div class="stat-num" data-count="-11.88" data-prefix="" data-suffix=" kcal/mol">−</div><div class="stat-label">Peak Affinity</div></div>
+                    <div class="stat-item"><div class="stat-num" data-count="11551" data-formatted="true">0</div><div class="stat-label">MEROPS Training Events</div></div>
                 </div>
             </div>
 
             <div class="grid-3">
-                <div class="card">
+                <div class="card reveal">
                     <div class="card-icon"><i data-lucide="database"></i></div>
                     <h3>MEROPS Extraction</h3>
                     <p>11,551 experimentally confirmed P4–P4′ 8-mer binding windows isolated across 27 sepsis proteases from MEROPS release 12.4.</p>
                 </div>
-                <div class="card featured">
+                <div class="card featured reveal reveal-delay-1">
                     <div class="card-icon"><i data-lucide="cpu"></i></div>
                     <h3>SupremeGAN Engine</h3>
                     <p>Novel architecture combining Spectral Normalization with 4-head Self-Attention. Conditioned on enzyme class labels to prevent mode collapse.</p>
                 </div>
-                <div class="card">
+                <div class="card reveal reveal-delay-2">
                     <div class="card-icon"><i data-lucide="microscope"></i></div>
                     <h3>ESMFold & AutoDock</h3>
                     <p>End-to-end: ESMFold 3D structure folding (10–15 s/seq) → AutoDock Vina docking at strict 0.375 Å atomic grid-spacing parameters.</p>
@@ -585,10 +594,158 @@
     </div>
 
     <footer>
-        <p class="footer-text">AegisGAN · Pranav Divichenchu · Academy of Engineering and Technology · RSEF 2026</p>
+        <div class="footer-inner">
+            <p class="footer-text">AegisGAN · Pranav Divichenchu · Academy of Engineering and Technology · RSEF 2026</p>
+            <div class="footer-links">
+                <button class="footer-link" onclick="showSection('home')">Home</button>
+                <button class="footer-link" onclick="showSection('database')">Database</button>
+                <button class="footer-link" onclick="showSection('pipeline')">Pipeline</button>
+                <button class="footer-link" onclick="showSection('about')">About</button>
+            </div>
+        </div>
     </footer>
+
+    <!-- Scroll to Top Button -->
+    <button id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+    </button>
 
     <script src="script.js"></script>
     <script>lucide.createIcons();</script>
+    <script>
+    /* ── UI Enhancement Scripts ────────────────────────── */
+
+    // Scroll progress bar
+    window.addEventListener('scroll', () => {
+        const scrolled = window.scrollY;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        const pct = maxScroll > 0 ? (scrolled / maxScroll) * 100 : 0;
+        document.getElementById('scroll-progress').style.width = pct + '%';
+
+        // Navbar shadow on scroll
+        document.getElementById('main-navbar').classList.toggle('scrolled', scrolled > 20);
+
+        // Scroll-to-top visibility
+        document.getElementById('scroll-top-btn').classList.toggle('visible', scrolled > 300);
+    });
+
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+        const nav = document.getElementById('nav-links');
+        const btn = document.getElementById('menu-toggle');
+        nav.classList.toggle('open');
+        btn.classList.toggle('open');
+    }
+
+    // Scroll reveal
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) { e.target.classList.add('visible'); }
+        });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => {
+        revealObserver.observe(el);
+        // Immediately reveal if already in viewport on load
+    });
+
+    // Animated stat counters
+    function animateCounters() {
+        document.querySelectorAll('.stat-num[data-count]').forEach(el => {
+            const target = parseFloat(el.dataset.count);
+            const isNeg = target < 0;
+            const abs = Math.abs(target);
+            const isFloat = abs !== Math.floor(abs);
+            const formatted = el.dataset.formatted === 'true';
+            const duration = 1400;
+            const start = performance.now();
+
+            const tick = (now) => {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const ease = 1 - Math.pow(1 - progress, 3);
+                const current = abs * ease;
+
+                let display;
+                if (isFloat) {
+                    display = (isNeg ? '−' : '') + current.toFixed(2);
+                } else if (formatted) {
+                    display = Math.floor(current).toLocaleString();
+                } else {
+                    display = (isNeg ? '−' : '') + Math.floor(current);
+                }
+                el.textContent = display;
+                if (progress < 1) requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+        });
+    }
+
+    // Trigger counters when home section is visible
+    const statsEl = document.querySelector('.stats-strip');
+    if (statsEl) {
+        new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) animateCounters();
+        }, { threshold: 0.5 }).observe(statsEl);
+    }
+
+    // Animated particle background
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let W, H;
+
+    function resizeCanvas() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    for (let i = 0; i < 60; i++) {
+        particles.push({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            r: Math.random() * 1.5 + 0.3,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: (Math.random() - 0.5) * 0.3,
+            opacity: Math.random() * 0.5 + 0.1
+        });
+    }
+
+    function drawParticles() {
+        ctx.clearRect(0, 0, W, H);
+        particles.forEach(p => {
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+            if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(29,242,207,${p.opacity})`;
+            ctx.fill();
+        });
+
+        // Draw connecting lines between nearby particles
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 120) {
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.strokeStyle = `rgba(29,242,207,${0.06 * (1 - dist / 120)})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+    </script>
 </body>
 </html>

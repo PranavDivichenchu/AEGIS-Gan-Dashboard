@@ -442,3 +442,303 @@ footer { border-top: 1px solid rgba(255,255,255,0.05); padding: 40px 24px; text-
 
 /* Novelty Badge */
 .novelty-badge { font-size: 0.75rem; font-weight: 800; padding: 4px 10px; background: rgba(200, 50, 255, 0.15); color: #c832ff; border-radius: 6px; border: 1px solid rgba(200, 50, 255, 0.3); letter-spacing: 0.5px;}
+
+/* ═══════════════════════════════════════════════════════════════
+   UI IMPROVEMENTS — Enhanced Design Layer
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Scroll Progress Bar ──────────────────────────────── */
+#scroll-progress {
+    position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+    background: linear-gradient(90deg, var(--teal), #15c8a9, var(--rose));
+    z-index: 999; transition: width 0.1s linear;
+    box-shadow: 0 0 10px rgba(29, 242, 207, 0.7);
+}
+
+/* ── Animated Canvas Background ──────────────────────── */
+#bg-canvas {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0; opacity: 0.35;
+}
+body > *:not(#bg-canvas):not(#scroll-progress) {
+    position: relative; z-index: 1;
+}
+
+/* ── Enhanced Navbar ──────────────────────────────────── */
+.navbar {
+    transition: box-shadow 0.3s ease, background 0.3s ease;
+}
+.navbar.scrolled {
+    background: rgba(5, 5, 8, 0.92) !important;
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+}
+.menu-toggle {
+    display: none; flex-direction: column; gap: 5px; cursor: pointer;
+    padding: 8px; border: none; background: transparent; margin-left: auto;
+}
+.menu-toggle span {
+    display: block; width: 22px; height: 2px;
+    background: var(--muted); border-radius: 2px; transition: var(--trans);
+}
+.menu-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); background: var(--teal); }
+.menu-toggle.open span:nth-child(2) { opacity: 0; }
+.menu-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); background: var(--teal); }
+
+/* ── Enhanced Hero Title ──────────────────────────────── */
+.hero-title {
+    background: linear-gradient(135deg, #f0f0f5 30%, var(--teal) 60%, #15c8a9 80%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmerText 4s ease-in-out infinite;
+    background-size: 200% 200%;
+}
+.hero-title .text-teal {
+    -webkit-text-fill-color: transparent;
+    background: inherit;
+    background-clip: text;
+    -webkit-background-clip: text;
+    text-shadow: none;
+}
+@keyframes shimmerText {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* ── Animated Stats Strip ─────────────────────────────── */
+.stat-num {
+    transition: color 0.3s ease;
+}
+.stat-item:hover .stat-num {
+    text-shadow: 0 0 30px rgba(29, 242, 207, 0.6);
+    transform: scale(1.05);
+}
+.stat-item {
+    transition: var(--trans);
+    position: relative; overflow: hidden;
+}
+.stat-item::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--teal), transparent);
+    transform: scaleX(0); transition: transform 0.4s ease;
+}
+.stat-item:hover::after { transform: scaleX(1); }
+
+/* ── Gradient Border on Featured Card ─────────────────── */
+.card.featured {
+    position: relative;
+    border-color: transparent !important;
+    background-clip: padding-box;
+}
+.card.featured::before {
+    content: '';
+    position: absolute; inset: -1px; border-radius: calc(var(--radius-lg) + 1px);
+    background: linear-gradient(135deg, var(--teal), var(--rose), var(--teal));
+    background-size: 200% 200%;
+    animation: borderRotate 4s linear infinite;
+    z-index: -1;
+}
+@keyframes borderRotate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* ── Scroll Reveal ────────────────────────────────────── */
+.reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
+                transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+
+/* ── Enhanced Table: Affinity Bars ────────────────────── */
+.affinity-bar-wrap {
+    display: flex; align-items: center; gap: 10px;
+}
+.affinity-bar {
+    flex: 1; height: 4px; background: rgba(255,255,255,0.06);
+    border-radius: 4px; overflow: hidden; min-width: 60px;
+}
+.affinity-bar-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, var(--teal), var(--green));
+    transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 0 6px rgba(29, 242, 207, 0.4);
+}
+.affinity-bar-fill.excellent {
+    background: linear-gradient(90deg, var(--green), #5effad);
+    box-shadow: 0 0 8px rgba(41, 226, 106, 0.5);
+}
+.affinity-bar-fill.warning {
+    background: linear-gradient(90deg, var(--amber), #ffda6a);
+}
+
+/* ── Skeleton Loading Rows ────────────────────────────── */
+@keyframes skeletonPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.9; }
+}
+.skeleton-row td { border-bottom: 1px solid rgba(255,255,255,0.04); padding: 18px 20px; }
+.skeleton-bar {
+    height: 14px; border-radius: 8px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.12), rgba(255,255,255,0.05));
+    background-size: 200% 100%;
+    animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+.skeleton-bar.short { width: 55%; }
+.skeleton-bar.medium { width: 75%; }
+.skeleton-bar.long { width: 90%; }
+
+/* ── Scroll-to-Top Button ─────────────────────────────── */
+#scroll-top-btn {
+    position: fixed; bottom: 32px; right: 32px; z-index: 200;
+    width: 44px; height: 44px; border-radius: 12px;
+    background: rgba(18, 18, 24, 0.85); border: 1px solid var(--border-2);
+    backdrop-filter: blur(16px); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: var(--trans); color: var(--teal);
+    opacity: 0; transform: translateY(16px);
+    pointer-events: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+#scroll-top-btn.visible {
+    opacity: 1; transform: translateY(0); pointer-events: all;
+}
+#scroll-top-btn:hover {
+    background: var(--teal-dim); border-color: var(--teal);
+    box-shadow: 0 8px 24px rgba(29, 242, 207, 0.25);
+    transform: translateY(-2px);
+}
+#scroll-top-btn svg { width: 18px; height: 18px; }
+
+/* ── Enhanced Pipeline Connector ─────────────────────── */
+.step-nav {
+    position: relative;
+}
+.snb.active {
+    position: relative;
+    animation: stepGlow 2s ease-in-out infinite;
+}
+@keyframes stepGlow {
+    0%, 100% { box-shadow: none; }
+    50% { box-shadow: inset 0 0 24px rgba(29, 242, 207, 0.08); }
+}
+
+/* ── Enhanced Card Hover Effects ─────────────────────── */
+.card {
+    position: relative; overflow: hidden;
+}
+.card::after {
+    content: ''; position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle at center, rgba(29, 242, 207, 0.04) 0%, transparent 60%);
+    opacity: 0; transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+.card:hover::after { opacity: 1; }
+
+/* ── Footer Improvements ──────────────────────────────── */
+footer {
+    background: linear-gradient(to top, rgba(5,5,8,0.95), transparent);
+}
+.footer-inner {
+    max-width: 1140px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+}
+.footer-links {
+    display: flex; gap: 20px;
+}
+.footer-link {
+    color: var(--muted-2); font-size: 0.85rem; text-decoration: none;
+    font-weight: 600; transition: color 0.2s ease;
+    cursor: pointer; background: none; border: none;
+}
+.footer-link:hover { color: var(--teal); }
+
+/* ── Better Scrollbar ─────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+::-webkit-scrollbar-thumb {
+    background: rgba(29, 242, 207, 0.25); border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(29, 242, 207, 0.5);
+}
+
+/* ── Glowing Input Focus ──────────────────────────────── */
+.form-input, .form-select {
+    position: relative;
+}
+.form-input:focus, .form-select:focus {
+    box-shadow: 0 0 0 3px rgba(29, 242, 207, 0.2), 0 0 20px rgba(29, 242, 207, 0.08);
+}
+
+/* ── Loss Card Hover ──────────────────────────────────── */
+.loss-card {
+    transition: var(--trans);
+}
+.loss-card:hover {
+    border-color: rgba(255,255,255,0.25);
+    background: rgba(0,0,0,0.45);
+    transform: translateY(-2px);
+}
+
+/* ── Mobile Responsiveness ────────────────────────────── */
+@media (max-width: 768px) {
+    .menu-toggle { display: flex; }
+    .nav-links {
+        display: none; position: absolute; top: 64px; left: 0; right: 0;
+        flex-direction: column; background: rgba(5,5,8,0.98);
+        border-bottom: 1px solid var(--border); padding: 12px 16px; gap: 4px;
+        backdrop-filter: blur(20px);
+    }
+    .nav-links.open { display: flex; }
+    .nav-link { width: 100%; text-align: left; border-radius: 8px; }
+    .nav-actions { display: none; }
+    .hero-title { font-size: 2.4rem; letter-spacing: -1.5px; }
+    .hero-subtitle { font-size: 1rem; }
+    .stats-strip { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .admet-grid { grid-template-columns: 1fr 1fr; }
+    .loss-grid { grid-template-columns: 1fr 1fr; }
+    .result-stats { grid-template-columns: 1fr 1fr; }
+    .step-nav { flex-direction: column; }
+    .snb { border-right: none; border-bottom: 1px solid var(--border); }
+    .snb:last-child { border-bottom: none; }
+    .fda-banner { flex-direction: column; gap: 16px; }
+    .fda-right { text-align: left; }
+    .about-card { padding: 28px; }
+    .visual-widgets-row { grid-template-columns: 1fr; }
+    .footer-inner { flex-direction: column; text-align: center; }
+}
+
+@media (max-width: 480px) {
+    .btn-row { flex-direction: column; align-items: stretch; }
+    .btn-primary, .btn-secondary { justify-content: center; }
+    .admet-grid { grid-template-columns: 1fr; }
+    .synth-grid { grid-template-columns: 1fr; }
+    .container { padding: 32px 16px; }
+    .hero-wrap { padding: 60px 0 48px; }
+    .hero-title { font-size: 2rem; }
+}
+
+/* ── Tooltip on Table Rows ────────────────────────────── */
+.data-table tr { cursor: pointer; }
+.data-table tr td:last-child { opacity: 0.5; transition: opacity 0.2s; }
+.data-table tr:hover td:last-child { opacity: 1; }
+
+/* ── Section Transition Fade ──────────────────────────── */
+.app-section {
+    transition: opacity 0.3s ease;
+}

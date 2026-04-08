@@ -125,9 +125,13 @@ function unlockAndGo(n) {
 // ── Database table ─────────────────────────────────────────────────────────
 function populateTable() {
     const tbody = document.getElementById('inhibitor-table-body');
+    const maxAff = Math.max(...DB.map(r => Math.abs(parseFloat(r.aff))));
+
     DB.forEach((row, i) => {
         const affNum = parseFloat(row.aff);
         const affClass = affNum <= -10 ? 'affinity-exc' : 'affinity-good';
+        const barPct = (Math.abs(affNum) / maxAff * 100).toFixed(1);
+        const barClass = affNum <= -10 ? 'excellent' : affNum < -8 ? '' : 'warning';
         const valBadge = row.val.includes('Exceptional') ? `<span style="color:#22c55e;font-size:.8rem;font-weight:700">${row.val}</span>`
                        : row.val.includes('Superior')    ? `<span style="color:var(--teal);font-size:.8rem;font-weight:600">${row.val}</span>`
                        : `<span style="color:var(--muted);font-size:.8rem">${row.val}</span>`;
@@ -138,12 +142,26 @@ function populateTable() {
             <td class="seq-cell">${row.seq}</td>
             <td style="color:var(--muted);font-size:.85rem">${row.form.includes('NHOH') ? 'Hydroxamate' : row.form.includes('B(OH)') ? 'Boronic Acid' : 'Aldehyde (−CHO)'}</td>
             <td><span class="novelty-badge">${getNoveltyIndex(row.seq)}% Novel</span></td>
-            <td class="${affClass}">${row.aff}</td>
+            <td>
+                <div class="affinity-bar-wrap">
+                    <span class="${affClass}" style="font-family:var(--mono);font-weight:700;white-space:nowrap">${row.aff}</span>
+                    <div class="affinity-bar">
+                        <div class="affinity-bar-fill ${barClass}" style="width:0%" data-width="${barPct}%"></div>
+                    </div>
+                </div>
+            </td>
             <td>${valBadge}</td>
             <td><button class="btn-sm" onclick="openModal(${i})"><i data-lucide="microscope" style="width:13px;height:13px"></i> Inspect</button></td>`;
         tbody.appendChild(tr);
     });
     lucide.createIcons();
+
+    // Animate affinity bars in with a small delay
+    setTimeout(() => {
+        document.querySelectorAll('.affinity-bar-fill[data-width]').forEach(el => {
+            el.style.width = el.dataset.width;
+        });
+    }, 200);
 }
 
 function getNoveltyIndex(seq) {
