@@ -706,3 +706,50 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 const _s = document.createElement('style');
 _s.textContent = `@keyframes spin-kf{to{transform:rotate(360deg)}}.spin-icon{animation:spin-kf .9s linear infinite;display:inline-block}`;
 document.head.appendChild(_s);
+
+// ── True Molecular Docking via AutoDock Vina ──
+window.runTrueDockingSimulation = async function() {
+    const seq = document.getElementById('admet-seq-tag').textContent;
+    const protease = document.getElementById('gen-protease').value || "MMP1";
+    const btn = document.getElementById('run-3d-btn');
+    if (!seq) return alert("Select a generated sequence first.");
+
+    if(btn) { btn.disabled = true; btn.innerHTML = `<i data-lucide="loader" class="spin-icon" style="width:14px;height:14px"></i> Submitting...`; lucide.createIcons(); }
+
+    try {
+        const r = await fetch(`${API}/api/dock`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ sequence: seq, protease: protease })
+        });
+        const d = await r.json();
+        const jobId = d.job_id;
+
+        if(btn) { btn.innerHTML = `<i data-lucide="loader" class="spin-icon" style="width:14px;height:14px"></i> Simulating (2-3 mins)...`; lucide.createIcons(); }
+
+        const poll = setInterval(async () => {
+            const pr = await fetch(`${API}/api/dock/${jobId}`);
+            if(!pr.ok) return;
+            const pd = await pr.json();
+            
+            if (pd.status === 'completed') {
+                clearInterval(poll);
+                document.getElementById('a-dg').textContent = pd.affinity + ' kcal/mol (Vina)';
+                document.getElementById('a-dg').classList.remove('rose');
+                document.getElementById('a-dg').classList.add('teal');
+                document.getElementById('a-dg').style.color = '#1df2cf';
+                if(btn) { btn.disabled = false; btn.innerHTML = `<i data-lucide="check" style="width:14px;height:14px"></i> Docking Complete`; lucide.createIcons(); }
+            } else if (pd.status === 'failed') {
+                clearInterval(poll);
+                alert('Docking Failed: ' + pd.error);
+                if(btn) { btn.disabled = false; btn.innerHTML = `<i data-lucide="microscope" style="width:14px;height:14px"></i> Run True 3D Docking`; lucide.createIcons(); }
+            } else {
+                if(btn) { btn.innerHTML = `<i data-lucide="loader" class="spin-icon" style="width:14px;height:14px"></i> Status: ${pd.status}`; lucide.createIcons(); }
+            }
+        }, 4000);
+
+    } catch (e) {
+        alert('Server connection error. Is the backend API running?');
+        if(btn) { btn.disabled = false; btn.innerHTML = `<i data-lucide="microscope" style="width:14px;height:14px"></i> Run True 3D Docking`; lucide.createIcons(); }
+    }
+};
