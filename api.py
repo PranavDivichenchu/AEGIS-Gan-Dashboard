@@ -284,3 +284,63 @@ async def get_training_status(job_id: str):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001, reload=False)
+
+# ── Dynamic Docking Pipeline ──
+docking_jobs: dict = {}
+
+class DockRequest(BaseModel):
+    sequence: str
+    protease: str
+
+async def run_docking_task(job_id: str, sequence: str, protease: str):
+    import uuid, pandas as pd
+    try:
+        from predict_structures import StructurePredictor
+        from molecular_docking import MolecularDocking
+        
+        docking_jobs[job_id]["status"] = "folding"
+        predictor = StructurePredictor(output_dir="predicted_structures")
+        seq_id = f"dock_{job_id}"
+        
+        res = predictor.predict_structure_esmfold(sequence, seq_id)
+        if res.get("status") not in ["success", "cached"]:
+            raise Exception("Failed folding via ESMFold")
+            
+        peptide_pdb = res["pdb_file"]
+        
+        summary_path = "protease_structures/structure_summary.csv"
+        df = pd.read_csv(summary_path)
+        match = df[df['protease_name'] == protease]
+        if len(match) == 0:
+            raise Exception("No protease structure found.")
+            
+        protease_pdb = match.iloc[0]['prepared_file']
+        
+        docking_jobs[job_id]["status"] = "docking"
+        docker = MolecularDocking()
+        dock_res = docker.dock_peptide_to_protease(peptide_pdb, protease_pdb, protease, seq_id)
+        
+        if dock_res["status"] == "success":
+            docking_jobs[job_id]["status"] = "completed"
+            docking_jobs[job_id]["affinity"] = dock_res["binding_affinity"]
+        else:
+            raise Exception(dock_res.get("error", "Docking failed"))
+            
+    except Exception as e:
+        docking_jobs[job_id]["status"] = "failed"
+        docking_jobs[job_id]["error"] = str(e)
+
+@app.post("/api/dock")
+async def start_docking(req: DockRequest, background_tasks: BackgroundTasks):
+    job_id = str(uuid.uuid4())
+    docking_jobs[job_id] = {
+        "status": "starting", "sequence": req.sequence, "protease": req.protease, "error": None, "affinity": None
+    }
+    background_tasks.add_task(run_docking_task, job_id, req.sequence, req.protease)
+    return {"job_id": job_id, "status": "started"}
+
+@app.get("/api/dock/{job_id}")
+async def get_docking_status(job_id: str):
+    if job_id not in docking_jobs:
+        raise HTTPException(404, "Job not found")
+    return docking_jobs[job_id]
