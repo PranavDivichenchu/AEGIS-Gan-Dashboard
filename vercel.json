@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "sepsis_gan_platform/*", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/", "dest": "/sepsis_gan_platform/index.html" },
+    { "src": "/(.*)", "dest": "/sepsis_gan_platform/$1" }
+  ]
+}
