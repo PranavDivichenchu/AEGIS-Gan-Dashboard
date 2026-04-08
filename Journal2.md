@@ -12,10 +12,10 @@ header-includes:
 output: pdf_document
 ---
 
-# \hfill Journal #7
+# \hfill Journal #23
 ## \hfill Pranav Divichenchu
 \vspace{-0.5em}
-\hfill January 10, 2026
+\hfill March 15, 2026
 
 \vspace{1em}
 \hrule
@@ -23,36 +23,26 @@ output: pdf_document
 
 **Research Topic:** Design a Generative Adverserial Network (GAN) to design novel protein sequences that are able to predict and enhance model cleavage.
 
-**Weekly Goal (1/6/26 - 1/10/26):**
+## Daily Log (2/21/26-3/15/26)
 
-Submit comprehensive experimental design document to Dr. Hanson for review and approval.
+**Week of 2/21/26 - 2/28/26:**
+Successfully completed RSEF poster presentation and competition. The presentation went well, with judges particularly interested in the three-stage GAN architecture and the experimental validation plan. Received positive feedback on the clarity of the biological motivation and the novelty of using ensemble GAN methods for protease substrate design. Post-competition, began planning the development of an interactive web platform to showcase the research and make the GAN models accessible for demonstration purposes.
 
-Begin preparation for wet-lab validation by researching proper fluorometric assay techniques and plate reader operation.
+**Week of 3/1/26 - 3/8/26:**
+Started development of AegisGAN Dashboard, a full-stack web application to serve as the final research product. Built the backend API using FastAPI with endpoints for sequence generation, protease listing, and health monitoring. Integrated the three trained GAN models (SupremeGAN, Conditional GAN, and WGAN-GP) with the backend to enable real-time peptide generation through a REST API. Set up CORS middleware to enable communication between the frontend and backend servers.
 
-Familiarize with best practices for handling fluorogenic substrates and enzyme kinetics measurements.
+**Week of 3/9/26 - 3/15/26:**
+Completed the frontend implementation using Next.js 16 with React 19 and TypeScript. Implemented a modern, polished dark-themed UI with custom animations using Framer Motion and Tailwind CSS 4. Key features developed include:
 
-\vspace{1em}
-\hrule
-\vspace{1em}
+- **Protein Generator Module:** Interactive sequence generation interface with real-time backend status monitoring, support for all three GAN architectures, configurable batch sizes, and export functionality (JSON, FASTA, CSV formats)
+- **Performance Dashboard:** Real-time metrics visualization using Recharts with area and bar charts showing generation trends and protease distribution
+- **ESMFold 3D Visualization Modal:** Interactive modal for viewing generated sequences with links to ESMFold structure prediction API
+- **Sequence Comparison Tool:** Side-by-side peptide comparison with similarity analysis and biophysical property prediction (hydrophobicity, net charge)
+- **ADMET Profiler:** Pharmacokinetics prediction interface with Lipinski's Rule of Five validation and toxicology screening
+- **Training Studio:** Simulated GAN training interface with progress tracking
+- **Sequence History Tracking:** Automatic logging of all generation sessions with timestamps and model metadata
 
-## Daily Log (1/6/26-1/10/26)
-
-**Monday, 1/6/26:**
-Finalized the comprehensive experimental design document for the Kallikrein 2 substrate validation experiment. Made final revisions to ensure all sections met the experimental design rubric requirements, including clear problem statement, testable hypothesis with null hypothesis, explicitly defined independent and dependent variables, comprehensive controls (blanks and substrate-only), detailed materials list with vendor specifications and catalog numbers, step-by-step numbered procedures, safety considerations with MSDS references, and complete bibliography. The final document includes detailed protocols for the fluorometric substrate cleavage assay using EGSCYGTR-AMC peptide, with a total project budget of $949. Submitted the experimental design to Dr. Hanson for review and approval. The document outlines testing a single high-confidence GAN-designed peptide (EGSCYGTR, predicted binding affinity -9.72 kcal/mol) rather than the entire 27-peptide panel, allowing for thorough validation within budget constraints.
-
-**Wednesday, 1/8/26:**
-Followed up on the experimental design submission to Dr. Hanson. Currently awaiting feedback and approval to proceed with reagent ordering and equipment scheduling. Used the waiting period productively to review the experimental design document and identify any potential areas for revision based on Dr. Hanson's feedback. Began preliminary research into best practices for fluorometric enzyme assays, focusing on proper handling of AMC-conjugated substrates and common pitfalls in kinetic fluorescence measurements. Reviewed literature on AMC fluorophore characteristics, including optimal excitation/emission wavelengths (360 nm/460 nm), sensitivity to pH and temperature, and potential quenching effects. This preparation will be valuable when executing the actual assay.
-
-**Friday, 1/10/26:**
-Continued preparation for wet-lab validation by conducting in-depth research into practical aspects of the fluorometric substrate cleavage assay. Watched several instructional videos and tutorials on YouTube and vendor websites (Molecular Devices, BioTek, Corning) covering:
-
-- Proper technique for preparing fluorogenic substrate stock solutions in DMSO
-- Best practices for enzyme handling and aliquoting to maintain activity
-- Plate reader operation and optimization of gain/sensitivity settings
-- Common sources of error in kinetic fluorescence assays (edge effects, evaporation, temperature drift)
-- Data analysis workflows for enzyme kinetics experiments
-
-Paid particular attention to videos demonstrating multichannel pipetting technique for adding enzyme to multiple wells simultaneously, which is critical for minimizing time differences in reaction initiation. Also reviewed protocols for maintaining sterile technique when working with recombinant proteins. This hands-on preparation through visual learning complements the written protocols in my experimental design and will help ensure successful execution when approval is granted and reagents arrive.
+Enhanced the user experience with custom scrollbar styling, gradient animations, backend connectivity status indicators, and comprehensive error handling with detailed troubleshooting instructions. The final product demonstrates all aspects of the research in an accessible, interactive format suitable for presentation and demonstration purposes.
 
 ## Timeline Update
 
@@ -64,22 +54,44 @@ Paid particular attention to videos demonstrating multichannel pipetting techniq
 \hline
 1/6/2026 & Submit experimental design to Dr. Hanson for approval & Done \\
 \hline
-1/15/2026 & Receive approval and finalize equipment access & In Progress \\
+1/15/2026 & Receive approval and finalize equipment access & Done \\
 \hline
-1/20/2026 & Order all reagents for validation experiments & Pending \\
+1/21/2026 & Submit inquiry for custom AMC-labeled protease reagent & Done \\
 \hline
-2/1/2026 & Execute initial substrate cleavage assays and collect kinetic data & Pending \\
+1/23/2026 & Receive quote and evaluate feasibility for RSEF timeline & Done \\
+\hline
+1/27/2026 & Begin developing RSEF presentation materials & Done \\
+\hline
+1/30/2026 & Continue refining presentation design and content & Done \\
+\hline
+2/7/2026 & Finalize all RSEF submission materials (presentation, abstract, summary) & Done \\
+\hline
+2/10/2026 & Deliver class presentation and collect feedback & Done \\
+\hline
+2/15/2026 & Incorporate presentation feedback and refine for RSEF & Done \\
+\hline
+2/23/2026 & Complete RSEF poster presentation and competition & Done \\
+\hline
+3/1/2026 & Begin development of AegisGAN web platform & Done \\
+\hline
+3/5/2026 & Complete backend API implementation with FastAPI & Done \\
+\hline
+3/8/2026 & Integrate all three GAN models with REST API endpoints & Done \\
+\hline
+3/10/2026 & Complete frontend framework setup with Next.js and React & Done \\
+\hline
+3/12/2026 & Implement core features: generator, dashboard, visualizations & Done \\
+\hline
+3/14/2026 & Add advanced features: ESMFold modal, sequence comparison, ADMET profiler & Done \\
+\hline
+3/15/2026 & Finalize UI/UX enhancements and complete web platform & Done \\
 \hline
 \end{longtable}
 
 ## Reflection
 
-This week marked an important transition from experimental design to preparation for actual implementation. Submitting the comprehensive experimental design document to Dr. Hanson represents a critical milestone - moving from computational predictions to planning wet-lab validation. The waiting period for approval has been valuable for deepening my understanding of the practical techniques required for fluorometric assays.
+This period marked the transition from research presentation to final product development. The RSEF competition provided valuable experience in communicating complex computational biology research to a diverse scientific audience, and the positive reception confirmed the novelty and potential impact of the ensemble GAN approach for substrate design. The decision to develop the AegisGAN Dashboard as the final research product was motivated by a desire to make the work more accessible and interactive beyond static figures and presentations.
 
-The video-based learning approach on Friday was particularly helpful. Seeing experienced researchers demonstrate proper pipetting technique, plate setup, and troubleshooting strategies provides context that written protocols alone cannot convey. Understanding common pitfalls like edge effects (wells on plate edges evaporating faster) and the importance of temperature equilibration will help me avoid these issues when I run the actual experiment.
+The web platform development required integrating multiple technical domains—backend API design with FastAPI, frontend development with modern React frameworks, real-time data visualization, and seamless integration with the trained GAN models. The most challenging aspect was ensuring smooth communication between the Next.js frontend and the Python backend while maintaining clean state management for features like sequence history tracking and real-time status monitoring. The implementation of the ESMFold visualization modal and sequence comparison tool extended the platform beyond simple generation, providing users with tools for structural analysis and peptide characterization.
 
-One key insight from this week's research is the critical importance of timing when adding enzyme to substrate wells. The videos emphasized that even small delays (30-60 seconds) between adding enzyme to the first and last wells can introduce variability in kinetic measurements. This reinforces my decision to use a multichannel pipette and practice the motion before the actual experiment.
-
-The experimental design is now in Dr. Hanson's hands. Once approved, the next steps will be ordering the custom EGSCYGTR-AMC peptide (3-4 week synthesis time), purchasing the recombinant Kallikrein 2 enzyme, and scheduling plate reader access. The peptide synthesis timeline means that even with prompt approval, I'm realistically looking at mid-to-late February for running the actual assay. This timeline aligns well with the semester schedule and allows buffer for troubleshooting if needed.
-
-Whether the experiment shows positive results (validating the GAN prediction) or negative results (revealing limitations in the computational approach), the data will provide valuable feedback for refining the machine learning model and understanding the relationship between predicted binding affinity and actual enzymatic cleavage.
+The final AegisGAN Dashboard successfully demonstrates the entire research pipeline in an interactive format: from GAN-based sequence generation across three architectures, to performance metrics visualization, to pharmacokinetics profiling with ADMET predictions. This platform serves as both a demonstration of the research outcomes and a potential foundation for future experimental work, as it provides easy access to the trained models for generating candidate peptides for wet-lab validation. The development process also reinforced the importance of user experience design in scientific software—features like the backend status indicator, detailed error messages, and export functionality make the platform practical for actual use rather than just demonstration.
