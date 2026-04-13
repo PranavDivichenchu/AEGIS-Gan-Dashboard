@@ -20,8 +20,24 @@ let pipelineState = {
     generatedSeqs: [],   // [{seq, affinity, modality}]
 };
 
-// ── amino acid vocab for mock generation ──────────────────────────────────
-const AA3 = ['Pro','Gly','Trp','Phe','His','Asp','Glu','Arg','Cys','Ser','Tyr','Met','Leu','Ile','Val','Ala','Thr','Asn','Gln','Lys'];
+// ── amino acid vocab for mock generation (calibrated to MEROPS frequency model) ───
+const MEROPS_FREQ = {
+    'Ala': 0.104, 'Leu': 0.091, 'Gly': 0.084, 'Ser': 0.078, 'Val': 0.075,
+    'Asp': 0.073, 'Glu': 0.059, 'Pro': 0.055, 'Ile': 0.048, 'Thr': 0.046,
+    'Lys': 0.044, 'Gln': 0.040, 'Arg': 0.036, 'Asn': 0.031, 'Phe': 0.030,
+    'Tyr': 0.022, 'Met': 0.021, 'His': 0.019, 'Cys': 0.011, 'Trp': 0.007
+};
+const AA3 = Object.keys(MEROPS_FREQ);
+
+function weightedAASample(seed) {
+    let rand = ((seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    let sum = 0;
+    for (const aa in MEROPS_FREQ) {
+        sum += MEROPS_FREQ[aa];
+        if (rand <= sum) return aa;
+    }
+    return 'Ala';
+}
 
 // ── Research database ──────────────────────────────────────────────────────
 const DB = [
@@ -44,7 +60,11 @@ const DB = [
 // ── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     populateTable();
-    checkAPI();
+    checkAPI().then(() => {
+        if (apiOnline) {
+            fetchProteases();
+        }
+    });
     setInterval(checkAPI, 20000);
     document.getElementById('result-modal').addEventListener('click', e => {
         if (e.target.id === 'result-modal') closeModal();
@@ -58,7 +78,11 @@ async function checkAPI() {
     try {
         const r = await fetch(`${API}/api/health`, { signal: AbortSignal.timeout(2000) });
         const d = await r.json();
+        const wasOffline = !apiOnline;
         apiOnline = d.status === 'online';
+        if (wasOffline && apiOnline) {
+            fetchProteases();
+        }
     } catch {
         apiOnline = false;
     }
@@ -70,6 +94,34 @@ async function checkAPI() {
     } else {
         dot.className   = 'dot offline';
         label.textContent = 'API offline';
+    }
+}
+
+async function fetchProteases() {
+    try {
+        const r = await fetch(`${API}/api/proteases`);
+        if (!r.ok) return;
+        const proteases = await r.json();
+        const sel = document.getElementById('gen-protease');
+        if (!sel) return;
+        
+        // Save current selection if possible
+        const current = sel.value;
+        sel.innerHTML = '';
+        
+        proteases.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.name;
+            opt.textContent = p.name;
+            sel.appendChild(opt);
+        });
+        
+        // Restore selection if it still exists
+        if ([...sel.options].some(o => o.value === current)) {
+            sel.value = current;
+        }
+    } catch (e) {
+        console.warn('Failed to fetch proteases:', e);
     }
 }
 
@@ -422,8 +474,12 @@ window.runGeneration = async function() {
     if (!isLive) {
         // Mock: seeded from MEROPS frequency distribution
         sequences = Array.from({ length: samples }, (_, i) => {
-            const seed = protease + i;
-            return Array.from({ length: 8 }, (_, j) => AA3[(seed.charCodeAt(j % seed.length) * (j+7)) % AA3.length]).join('');
+            let seq = "";
+            let baseSeed = protease.split('').reduce((a,b)=>a+b.charCodeAt(0), 0) + i * 100;
+            for (let j = 0; j < 8; j++) {
+                seq += weightedAASample(baseSeed + j * 13);
+            }
+            return seq;
         });
     }
 
