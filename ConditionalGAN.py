@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import os
 
 
-df = pd.read_csv("/Users/pranavdivichenchu/Documents/AET Senior Research/MEROPS_sepsis_expanded_dataset.csv")
+df = pd.read_csv("MEROPS_sepsis_expanded_dataset.csv")
 sequence_cols = ['P4','P3','P2','P1',"P1'","P2'","P3'","P4'"]
 label_col = 'Label'
 protease_col = 'Protease_Name'
