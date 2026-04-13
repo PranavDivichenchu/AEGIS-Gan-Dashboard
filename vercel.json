@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "name": "sepsis-gan-frontend",
+  "public": true,
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/sepsis_gan_platform/$1" }
+  ]
+}

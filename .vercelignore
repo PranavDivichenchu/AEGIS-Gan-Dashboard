@@ -1,0 +1,25 @@
+# Ignore everything backend-related to stay under Lambda limits
+*
+!sepsis_gan_platform/
+!vercel.json
+!index.html
+!script.js
+!styles.css
+
+# Explicitly exclude heavy files
+*.pth
+*.pth.tar
+*.ckpt
+*.csv
+venv/
+Preprocessing/
+predicted_structures/
+protease_structures/
+docking_results/
+SupremeGAN.py
+ConditionalGAN.py
+WGAN_GP.py
+requirements.txt
+Dockerfile
+main.py
+api.py
