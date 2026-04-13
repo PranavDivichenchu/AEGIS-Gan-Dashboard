@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install system dependencies if required by torch/scipy (optional, but good for data science packages)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+    build-essential openbabel autodock-vina \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python dependencies
