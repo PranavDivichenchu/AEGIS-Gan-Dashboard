@@ -7,10 +7,9 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 // Point to the backend server (Docker container URL in production, localhost in development)
-const BACKEND_PROD_URL = 'https://aegis-gan-dashboard.onrender.com';
-const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-    ? 'http://localhost:8001' 
-    : BACKEND_PROD_URL;
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:8001'
+    : window.location.origin;
 let apiOnline = false;
 let pipelineState = {
     step: 1,
@@ -76,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── API health check ───────────────────────────────────────────────────────
 async function checkAPI() {
     try {
-        const r = await fetch(`${API}/api/health`, { signal: AbortSignal.timeout(2000) });
+        const r = await fetch(`${API_URL}/api/health`, { signal: AbortSignal.timeout(2000) });
         const d = await r.json();
         const wasOffline = !apiOnline;
         apiOnline = d.status === 'online';
@@ -99,7 +98,7 @@ async function checkAPI() {
 
 async function fetchProteases() {
     try {
-        const r = await fetch(`${API}/api/proteases`);
+        const r = await fetch(`${API_URL}/api/proteases`);
         if (!r.ok) return;
         const proteases = await r.json();
         const sel = document.getElementById('gen-protease');
@@ -188,7 +187,7 @@ function populateTable() {
             <td><strong>${row.target}</strong></td>
             <td><span class="badge-cls">${row.cls}</span></td>
             <td class="seq-cell">${row.seq}</td>
-            <td style="color:var(--muted);font-size:.85rem">${row.form.includes('NHOH') ? 'Hydroxamate' : row.form.includes('B(OH)') ? 'Boronic Acid' : 'Aldehyde (−CHO)'}</td>
+            <td style="color:var(--muted);font-size:.85rem">${row.form.includes('NHOH') ? 'Hydroxamate' : row.form.includes('B(OH)') ? 'Boronic Acid' : 'Aldehyde (−CHO)}</td>
             <td><span class="novelty-badge">${getNoveltyIndex(row.seq)}% Novel</span></td>
             <td class="${affClass}">${row.aff}</td>
             <td>${valBadge}</td>
@@ -335,7 +334,7 @@ window.runTraining = async function() {
     // Try to start a REAL job on the backend
     if (apiOnline) {
         try {
-            const r = await fetch(`${API}/api/train`, {
+            const r = await fetch(`${API_URL}/api/train`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ architecture: arch, target_class: 'all', epochs, latent_dim: latent, learning_rate: lr })
@@ -358,7 +357,7 @@ window.runTraining = async function() {
     const poll = async () => {
         if (jobId && apiOnline) {
             try {
-                const r = await fetch(`${API}/api/train/${jobId}`);
+                const r = await fetch(`${API_URL}/api/train/${jobId}`);
                 const d = await r.json();
                 const e = d.current_epoch || 0;
 
@@ -444,6 +443,7 @@ window.runGeneration = async function() {
     const protease = document.getElementById('gen-protease').value;
     const samples  = parseInt(document.getElementById('gen-samples').value) || 6;
     const modality = document.getElementById('gen-modality').value;
+    const arch     = pipelineState.trainedArch;
     const modLabel = { boronic:'Boronic Acid −B(OH)₂', aldehyde:'Aldehyde −CHO', hydroxamate:'Hydroxamate −NHOH' }[modality];
 
     banner.classList.remove('hidden');
@@ -451,21 +451,23 @@ window.runGeneration = async function() {
 
     let sequences = [];
     let isLive    = false;
+    let modeText  = 'Mock generation';
 
     if (apiOnline) {
         try {
-            const r = await fetch(`${API}/api/generate`, {
+            let endpoint = `${API_URL}/api/generate`;
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ protease, model: pipelineState.trainedArch, num_samples: samples })
+                body: JSON.stringify({ protease, num_samples: samples, model: arch.toLowerCase() })
             });
-            if (r.ok) {
-                const d = await r.json();
-                sequences = d.sequences;
-                isLive    = true;
-            } else {
-                throw new Error('Bad response');
-            }
+
+            if (!res.ok) throw new Error('Generation failed');
+            const data = await res.json();
+            
+            sequences = data.sequences;
+            isLive    = data.is_live;
+            modeText  = data.model_used;
         } catch {
             isLive = false;
         }
