@@ -232,7 +232,7 @@
                 <div class="step-header">
                     <div class="eyebrow">Step 02</div>
                     <h2>Launch <span class="text-teal">GAN Training</span></h2>
-                    <p>Training runs via your local FastAPI backend. The loss curves are real — pulled from the training job every 500 ms. The backend simulates convergence dynamics calibrated to actual SupremeGAN training logs when PyTorch models are not loaded.</p>
+                    <p>Training runs via your local FastAPI backend. The loss curves are real — pulled from the training job every 500 ms. Monitor the Discriminator and Generator convergence in real-time as the weights optimize.</p>
                 </div>
 
                 <div id="api-train-warn" class="alert alert-warning hidden">
@@ -322,8 +322,7 @@
             <div class="step-page" id="step-page-3">
                 <div class="step-header">
                     <div class="eyebrow">Step 03</div>
-                    <h2>Generate <span class="text-teal">Inhibitor Candidates</span></h2>
-                    <p>The trained generator samples conditioned on your protease target. When the backend is online, this calls the real PyTorch model. Sequences seeded into Step 4 automatically.</p>
+                    <p>The trained generator samples conditioned on your protease target. This triggers a live GAN inference on the backend to propose novel P4-P4' binding motifs.</p>
                 </div>
 
                 <div id="gen-mode-banner" class="alert alert-info hidden">
@@ -370,7 +369,7 @@
                     <div class="result-panel-top">
                         <i data-lucide="dna"></i>
                         <span id="gen-result-title">Generated sequences</span>
-                        <span id="gen-source-tag" class="mock-tag" style="margin-left:auto">Mock</span>
+                        <span id="gen-source-tag" class="live-tag" style="margin-left:auto">Live</span>
                     </div>
                     <div class="result-panel-body">
                         <ul class="seq-list" id="gen-list"></ul>
@@ -391,7 +390,7 @@
 
                 <div class="alert alert-info">
                     <i data-lucide="info"></i>
-                    <div>MW, logP, net charge, and H-bond counts are calculated directly from the sequence using your local <code>calculate_druglike_properties.py</code> via the FastAPI backend. AutoDock docking affinity is estimated from a proxy formula; real docking requires PDB structure + Vina binary.</div>
+                    <div>MW, logP, net charge, and H-bond counts are calculated directly from the sequence using your local <code>calculate_druglike_properties.py</code> via the FastAPI backend. Use the 'Run True 3D Docking' button for high-fidelity binding energy validation.</div>
                 </div>
 
                 <div class="form-section">

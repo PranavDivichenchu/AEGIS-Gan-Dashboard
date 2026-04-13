@@ -19,25 +19,6 @@ let pipelineState = {
     generatedSeqs: [],   // [{seq, affinity, modality}]
 };
 
-// ── amino acid vocab for mock generation (calibrated to MEROPS frequency model) ───
-const MEROPS_FREQ = {
-    'Ala': 0.104, 'Leu': 0.091, 'Gly': 0.084, 'Ser': 0.078, 'Val': 0.075,
-    'Asp': 0.073, 'Glu': 0.059, 'Pro': 0.055, 'Ile': 0.048, 'Thr': 0.046,
-    'Lys': 0.044, 'Gln': 0.040, 'Arg': 0.036, 'Asn': 0.031, 'Phe': 0.030,
-    'Tyr': 0.022, 'Met': 0.021, 'His': 0.019, 'Cys': 0.011, 'Trp': 0.007
-};
-const AA3 = Object.keys(MEROPS_FREQ);
-
-function weightedAASample(seed) {
-    let rand = ((seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
-    let sum = 0;
-    for (const aa in MEROPS_FREQ) {
-        sum += MEROPS_FREQ[aa];
-        if (rand <= sum) return aa;
-    }
-    return 'Ala';
-}
-
 // ── Research database ──────────────────────────────────────────────────────
 const DB = [
     { target:"Caspase-1",           cls:"Caspase",          seq:"TrpSerPheAspGluThrHisAsp", aff:"-7.13",  form:"Ac-TrpSerPheAspGluThrHisAsp-CHO",           val:"TOST Equivalent" },
@@ -187,7 +168,7 @@ function populateTable() {
             <td><strong>${row.target}</strong></td>
             <td><span class="badge-cls">${row.cls}</span></td>
             <td class="seq-cell">${row.seq}</td>
-            <td style="color:var(--muted);font-size:.85rem">${row.form.includes('NHOH') ? 'Hydroxamate' : row.form.includes('B(OH)') ? 'Boronic Acid' : 'Aldehyde (−CHO)}</td>
+            <td style="color:var(--muted);font-size:.85rem">${row.form.includes('NHOH') ? 'Hydroxamate' : row.form.includes('B(OH)') ? 'Boronic Acid' : 'Aldehyde (−CHO)'}</td>
             <td><span class="novelty-badge">${getNoveltyIndex(row.seq)}% Novel</span></td>
             <td class="${affClass}">${row.aff}</td>
             <td>${valBadge}</td>
@@ -343,10 +324,14 @@ window.runTraining = async function() {
             jobId = d.job_id;
             appendLog(`Job dispatched → job_id: ${jobId.slice(0,8)}…`, 'log-ok');
         } catch (e) {
-            appendLog('Warning: Could not dispatch job. Falling back to local simulation.');
+            appendLog('Error: Could not dispatch training job.', 'log-error');
+            btn.disabled = false;
+            return;
         }
     } else {
-        appendLog('API offline — running local simulation calibrated to SupremeGAN training logs.', '');
+        appendLog('Error: API offline. Training requires a live backend connection.', 'log-error');
+        btn.disabled = false;
+        return;
     }
 
     // Poll loop
@@ -383,29 +368,10 @@ window.runTraining = async function() {
                     return;
                 }
             } catch {}
-        } else {
-            // Local simulation
-            const elapsed = (Date.now() - startMs) / 1000;
-            const rate    = 3.5; // epochs per second simulated
-            const e = Math.min(epochs, Math.floor(elapsed * rate));
-            const t = e / epochs;
-            const dl = (0.68 * Math.exp(-1.5*t) + 0.47 + (Math.random()-0.5)*0.015).toFixed(4);
-            const gl = (1.35 * (1-0.6*t)        + (Math.random()-0.5)*0.02).toFixed(4);
-            const gp = (0.12 * Math.exp(-2*t)   + 0.03).toFixed(4);
-
-            if (e > lastEpoch) {
-                lastEpoch = e;
-                bar.style.width = (e/epochs*100) + '%';
-                epochLbl.textContent = `Epoch ${e} / ${epochs}`;
-                dLoss.textContent = dl; gLoss.textContent = gl; gpLoss.textContent = gp;
-                mode_ok = parseFloat(gl) < 1.2 ? mode_ok + 1 : 0;
-                collapse.textContent = mode_ok > 8 ? 'Stable ✓' : 'Monitoring…';
-                collapse.style.color = mode_ok > 8 ? '#22c55e' : '';
-                if (e % Math.max(1, Math.floor(epochs/8)) === 0 && e > 0) {
-                    appendLog(`Epoch ${e}: D_loss=${dl} G_loss=${gl} GP=${gp}`);
-                }
-            }
-            if (e >= epochs) { trainingComplete(arch, epochs, parseFloat(dl), parseFloat(gl)); return; }
+        } else if (jobId && !apiOnline) {
+            appendLog('Error: Lost connection to API during training polling.', 'log-error');
+            btn.disabled = false;
+            return;
         }
         setTimeout(poll, 500);
     };
@@ -469,20 +435,16 @@ window.runGeneration = async function() {
             isLive    = data.is_live;
             modeText  = data.model_used;
         } catch {
-            isLive = false;
+            btn.disabled = false;
+            banner.className = 'alert alert-danger';
+            modeEl.textContent = 'Connection error: Unable to reach the backend for generation.';
+            return;
         }
-    }
-
-    if (!isLive) {
-        // Mock: seeded from MEROPS frequency distribution
-        sequences = Array.from({ length: samples }, (_, i) => {
-            let seq = "";
-            let baseSeed = protease.split('').reduce((a,b)=>a+b.charCodeAt(0), 0) + i * 100;
-            for (let j = 0; j < 8; j++) {
-                seq += weightedAASample(baseSeed + j * 13);
-            }
-            return seq;
-        });
+    } else {
+        btn.disabled = false;
+        banner.className = 'alert alert-error';
+        modeEl.textContent = 'API Offline: Real generation requires a backend connection.';
+        return;
     }
 
     // Store with proxied affinities
@@ -495,12 +457,10 @@ window.runGeneration = async function() {
     }));
 
     // Update UI
-    modeEl.textContent = isLive
-        ? `Live GAN inference via backend — ${pipelineState.trainedArch} model, ${protease}`
-        : `Mock generation — backend offline or protease not in encoder. Using MEROPS frequency model.`;
-    banner.className = `alert ${isLive ? 'alert-success' : 'alert-warning'}`;
-    tagEl.textContent = isLive ? 'Live' : 'Mock';
-    tagEl.className   = isLive ? 'live-tag' : 'mock-tag';
+    modeEl.textContent = `Live GAN inference via backend — ${pipelineState.trainedArch} model, ${protease}`;
+    banner.className = 'alert alert-success';
+    tagEl.textContent = 'Live';
+    tagEl.className   = 'live-tag';
 
     // Render list
     const list = document.getElementById('gen-list');
@@ -666,61 +626,14 @@ async function fetchADMET(seq, modality) {
                 body: JSON.stringify({ sequence: seq, modality })
             });
             if (r.ok) return await r.json();
-        } catch {}
+            throw new Error('API request failed');
+        } catch {
+            alert('Error: Could not reach the ADMET engine. Real calculations required.');
+            return null;
+        }
     }
-    // Fallback: client-side calculation using same AA property table
-    return localADMET(seq, modality);
-}
-
-// Local ADMET fallback (mirrors calculate_druglike_properties.py logic)
-const AA_MW = {Pro:115.1,Gly:75.1,Trp:204.2,Phe:165.2,His:155.2,Asp:133.1,Glu:147.1,Arg:174.2,
-               Cys:121.2,Ser:105.1,Tyr:181.2,Met:149.2,Leu:131.2,Ile:131.2,Val:117.1,Ala:89.1,
-               Thr:119.1,Asn:132.1,Gln:146.1,Lys:146.2};
-const AA_HYDRO = {Pro:-1.6,Gly:-0.4,Trp:-0.9,Phe:2.8,His:-3.2,Asp:-3.5,Glu:-3.5,Arg:-4.5,
-                  Cys:2.5,Ser:-0.8,Tyr:-1.3,Met:1.9,Leu:3.8,Ile:4.5,Val:4.2,Ala:1.8,
-                  Thr:-0.7,Asn:-3.5,Gln:-3.5,Lys:-3.9};
-const AA_CHARGE={Pro:0,Gly:0,Trp:0,Phe:0,His:0,Asp:-1,Glu:-1,Arg:1,Cys:0,Ser:0,Tyr:0,
-                 Met:0,Leu:0,Ile:0,Val:0,Ala:0,Thr:0,Asn:0,Gln:0,Lys:1};
-const POLAR_AA = new Set(['Asp','Glu','Arg','Cys','Ser','Tyr','Asn','Gln','His','Lys','Thr','Trp']);
-const DONOR_AA = new Set(['Ser','Thr','Tyr','Trp','Asn','Gln','His','Lys','Arg','Cys']);
-const ACCEPT_AA= new Set(['Asp','Glu','Ser','Thr','Tyr','Asn','Gln','His','Met']);
-
-function parseSeq(s) {
-    const m = s.match(/[A-Z][a-z]{2}/g);
-    return m || [];
-}
-function localADMET(seq, modality) {
-    const aas   = parseSeq(seq);
-    if (!aas.length) return { molecular_weight:0, logP:0, hbd:0, hba:0, oral_absorption_pct:0, bioavailability:'Unknown', half_life_h:0, toxicity_pct:0, estimated_docking_affinity:0, fda_score:0, fda_tier:'Unknown', fda_tier_class:'fail', fda_rationale:'Could not parse sequence.' };
-    const mwAdd = { boronic:43.8, aldehyde:1.0, hydroxamate:32.0 }[modality] || 0;
-    let mw      = aas.reduce((a,aa) => a + (AA_MW[aa]||131), 0) - 18*(aas.length-1) + mwAdd;
-    const charge= aas.reduce((a,aa) => a + (AA_CHARGE[aa]||0), 0);
-    const hydro = aas.reduce((a,aa) => a + (AA_HYDRO[aa]||0), 0) / aas.length;
-    const polar = aas.filter(aa => POLAR_AA.has(aa)).length / aas.length;
-    const hbd   = aas.filter(aa => DONOR_AA.has(aa)).length;
-    const hba   = aas.filter(aa => ACCEPT_AA.has(aa)).length;
-    const logP  = parseFloat((hydro*0.8 + polar*(-2.5) + 1.2).toFixed(2));
-    const abs   = Math.max(10, Math.min(98, Math.round(90 - Math.max(0,(mw-500)*0.08) - Math.max(0,(Math.abs(logP)-4)*6))));
-    const bio   = abs > 70 ? 'High' : abs > 45 ? 'Moderate' : 'Low';
-    const hl    = parseFloat(Math.max(0.5, Math.min(24, 4.5 + Math.abs(hydro)*(-0.4) + polar*3)).toFixed(1));
-    const tox   = Math.min(50, Math.round(8 + Math.max(0,Math.abs(charge)-1)*4 + Math.max(0,hydro-2)*3));
-    const dg    = parseFloat((-6.0 - hydro*0.4 - (1-polar)*1.2).toFixed(2));
-
-    // FDA scoring
-    let score = 100;
-    const notes = [];
-    if (mw > 500) { const p=Math.min(25,Math.floor((mw-500)/20)*5); score-=p; notes.push(`MW ${mw.toFixed(0)} Da (−${p})`); }
-    if (logP > 5) { score-=12; notes.push('logP > 5 (−12)'); }
-    if (hbd > 5)  { score-=10; notes.push('HBD > 5 (−10)'); }
-    if (hba > 10) { score-=10; notes.push('HBA > 10 (−10)'); }
-    if (tox > 25) { score-=20; notes.push(`Tox ${tox}% (−20)`); } else if (tox > 15) score-=10;
-    if (abs < 40) { score-=15; notes.push(`Abs ${abs}% (−15)`); } else if (abs < 60) score-=7;
-    score = Math.max(5, Math.min(97, score));
-
-    const [tc, tl] = score >= 78 ? ['excellent','Phase I Ready'] : score >= 60 ? ['good','Warrants Optimization'] : score >= 40 ? ['marginal','Formulation Required'] : ['fail','Redesign Needed'];
-    const rationale = notes.length ? notes.join('; ') : 'Passes all Lipinski Ro5 and ADMET thresholds.';
-
-    return { molecular_weight: parseFloat(mw.toFixed(1)), logP, hbd, hba, oral_absorption_pct: abs, bioavailability: bio, half_life_h: hl, toxicity_pct: tox, estimated_docking_affinity: dg, fda_score: score, fda_tier: tl, fda_tier_class: tc, fda_rationale: rationale };
+    alert('API Offline: Real ADMET calculations require a backend connection.');
+    return null;
 }
 
 // ── Profile All Candidates ─────────────────────────────────────────────────
