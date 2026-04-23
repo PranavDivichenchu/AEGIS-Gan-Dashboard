@@ -124,6 +124,7 @@ def compute_fda_score(mw, logp, hbd, hba, tox_pct, absorption, druglike_score):
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
+@app.get("/health")
 @app.get("/api/health")
 async def health():
     return {

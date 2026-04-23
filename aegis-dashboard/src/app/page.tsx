@@ -14,6 +14,11 @@ export default function AegisPlatform() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [toastMsg, setToastMsg] = useState("");
   const [sequenceHistory, setSequenceHistory] = useState<any[]>([]);
+  
+  const API_URL = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:8001/api'
+    : 'https://aegisgan-api.onrender.com/api';
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -417,7 +422,7 @@ function GeneratorView({ showToast, addToHistory, sequenceHistory }: { showToast
   useEffect(() => {
     const checkBackend = async () => {
       try {
-        const res = await fetch('http://localhost:8001/api/proteases', { signal: AbortSignal.timeout(3000) });
+        const res = await fetch(`${API_URL}/proteases`, { signal: AbortSignal.timeout(3000) });
         setBackendStatus(res.ok ? 'online' : 'offline');
       } catch {
         setBackendStatus('offline');
@@ -429,7 +434,7 @@ function GeneratorView({ showToast, addToHistory, sequenceHistory }: { showToast
   const handleGenerate = async () => {
     setLoading(true); setError(""); setResults([]);
     try {
-      const res = await fetch('http://localhost:8001/api/generate', {
+      const res = await fetch(`${API_URL}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ protease: target, model: model, num_samples: numSeq })

@@ -8,8 +8,8 @@
 
 // Point to the backend server (Docker container URL in production, localhost in development)
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:8001'
-    : 'https://aegisgan-api.onrender.com';
+    ? 'http://localhost:8001/api'
+    : 'https://aegisgan-api.onrender.com/api';
 let apiOnline = false;
 let pipelineState = {
     step: 1,
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── API health check ───────────────────────────────────────────────────────
 async function checkAPI() {
     try {
-        const r = await fetch(`${API_URL}/api/health`, { signal: AbortSignal.timeout(2000) });
+        const r = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(2000) });
         const d = await r.json();
         const wasOffline = !apiOnline;
         apiOnline = d.status === 'online';
@@ -79,7 +79,7 @@ async function checkAPI() {
 
 async function fetchProteases() {
     try {
-        const r = await fetch(`${API_URL}/api/proteases`);
+        const r = await fetch(`${API_URL}/proteases`);
         if (!r.ok) return;
         const proteases = await r.json();
         const sel = document.getElementById('gen-protease');
@@ -315,7 +315,7 @@ window.runTraining = async function() {
     // Try to start a REAL job on the backend
     if (apiOnline) {
         try {
-            const r = await fetch(`${API_URL}/api/train`, {
+            const r = await fetch(`${API_URL}/train`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ architecture: arch, target_class: 'all', epochs, latent_dim: latent, learning_rate: lr })
@@ -342,7 +342,7 @@ window.runTraining = async function() {
     const poll = async () => {
         if (jobId && apiOnline) {
             try {
-                const r = await fetch(`${API_URL}/api/train/${jobId}`);
+                const r = await fetch(`${API_URL}/train/${jobId}`);
                 const d = await r.json();
                 const e = d.current_epoch || 0;
 
@@ -421,7 +421,7 @@ window.runGeneration = async function() {
 
     if (apiOnline) {
         try {
-            let endpoint = `${API_URL}/api/generate`;
+            let endpoint = `${API_URL}/generate`;
             const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -620,7 +620,7 @@ window.calculateSynthesisCost = function() {
 async function fetchADMET(seq, modality) {
     if (apiOnline) {
         try {
-            const r = await fetch(`${API_URL}/api/admet`, {
+            const r = await fetch(`${API_URL}/admet`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sequence: seq, modality })
@@ -688,7 +688,7 @@ window.runTrueDockingSimulation = async function() {
     if(btn) { btn.disabled = true; btn.innerHTML = `<i data-lucide="loader" class="spin-icon" style="width:14px;height:14px"></i> Submitting...`; lucide.createIcons(); }
 
     try {
-        const r = await fetch(`${API_URL}/api/dock`, {
+        const r = await fetch(`${API_URL}/dock`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ sequence: seq, protease: protease })
@@ -699,7 +699,7 @@ window.runTrueDockingSimulation = async function() {
         if(btn) { btn.innerHTML = `<i data-lucide="loader" class="spin-icon" style="width:14px;height:14px"></i> Simulating (2-3 mins)...`; lucide.createIcons(); }
 
         const poll = setInterval(async () => {
-            const pr = await fetch(`${API_URL}/api/dock/${jobId}`);
+            const pr = await fetch(`${API_URL}/dock/${jobId}`);
             if(!pr.ok) return;
             const pd = await pr.json();
             
