@@ -21,13 +21,24 @@ except ImportError:
 
 app = FastAPI(title="AegisGAN API", version="2.0")
 
+# ── CORS Configuration ────────────────────────────────────────────────────────
+# Use explicit origins if possible to avoid issues with credentials or browser strictness
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Broad for now, but safer without credentials if using *
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ── Request Logging Middleware ───────────────────────────────────────────────
+@app.middleware("http")
+async def log_requests(request, call_next):
+    print(f"Incoming request: {request.method} {request.url.path}")
+    print(f"Origin: {request.headers.get('origin')}")
+    response = await call_next(request)
+    print(f"Response status: {response.status_code}")
+    return response
 
 training_jobs: dict = {}
 

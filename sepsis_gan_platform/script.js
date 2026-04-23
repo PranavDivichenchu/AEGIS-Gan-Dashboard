@@ -9,7 +9,7 @@
 // Point to the backend server (Docker container URL in production, localhost in development)
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://localhost:8001/api'
-    : 'https://aegisgan-api.onrender.com/api';
+    : window.location.origin + '/api';
 let apiOnline = false;
 let pipelineState = {
     step: 1,
@@ -56,14 +56,20 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── API health check ───────────────────────────────────────────────────────
 async function checkAPI() {
     try {
-        const r = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(2000) });
+        console.log(`Checking API health at: ${API_URL}/health`);
+        const r = await fetch(`${API_URL}/health`, { 
+            signal: AbortSignal.timeout(10000) // Increased to 10s for Render cold starts
+        });
+        if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
         const d = await r.json();
         const wasOffline = !apiOnline;
         apiOnline = d.status === 'online';
         if (wasOffline && apiOnline) {
+            console.log("API connection re-established.");
             fetchProteases();
         }
-    } catch {
+    } catch (err) {
+        console.warn("API Health Check Failed:", err.message);
         apiOnline = false;
     }
     const dot   = document.getElementById('api-dot');
