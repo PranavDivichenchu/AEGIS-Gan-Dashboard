@@ -9,7 +9,7 @@
 // Point to the backend server (Docker container URL in production, localhost in development)
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://localhost:8001'
-    : window.location.origin;
+    : 'https://aegisgan-api.onrender.com';
 let apiOnline = false;
 let pipelineState = {
     step: 1,
@@ -620,7 +620,7 @@ window.calculateSynthesisCost = function() {
 async function fetchADMET(seq, modality) {
     if (apiOnline) {
         try {
-            const r = await fetch(`${API}/api/admet`, {
+            const r = await fetch(`${API_URL}/api/admet`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sequence: seq, modality })
@@ -688,7 +688,7 @@ window.runTrueDockingSimulation = async function() {
     if(btn) { btn.disabled = true; btn.innerHTML = `<i data-lucide="loader" class="spin-icon" style="width:14px;height:14px"></i> Submitting...`; lucide.createIcons(); }
 
     try {
-        const r = await fetch(`${API}/api/dock`, {
+        const r = await fetch(`${API_URL}/api/dock`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ sequence: seq, protease: protease })
@@ -699,7 +699,7 @@ window.runTrueDockingSimulation = async function() {
         if(btn) { btn.innerHTML = `<i data-lucide="loader" class="spin-icon" style="width:14px;height:14px"></i> Simulating (2-3 mins)...`; lucide.createIcons(); }
 
         const poll = setInterval(async () => {
-            const pr = await fetch(`${API}/api/dock/${jobId}`);
+            const pr = await fetch(`${API_URL}/api/dock/${jobId}`);
             if(!pr.ok) return;
             const pd = await pr.json();
             
