@@ -403,6 +403,4 @@ async def get_docking_status(job_id: str):
 if os.path.exists("sepsis_gan_platform"):
     app.mount("/static", StaticFiles(directory="sepsis_gan_platform", html=True), name="static")
 
-@app.get("/")
-async def root():
-    return RedirectResponse(url="/index.html")
+
