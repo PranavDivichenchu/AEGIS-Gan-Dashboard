@@ -1,9 +1,17 @@
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from fastapi.responses import HTMLResponse
 import asyncio, os, sys, uuid, math
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    # Serve the main index.html from the static folder
+    index_path = os.path.join(os.getcwd(), "sepsis_gan_platform", "index.html")
+    with open(index_path, "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read(), status_code=200)
 
 # ── Import existing modules ──────────────────────────────────────────────────
 try:
@@ -393,7 +401,7 @@ async def get_docking_status(job_id: str):
 
 # ── Static File Serving ──
 if os.path.exists("sepsis_gan_platform"):
-    app.mount("/", StaticFiles(directory="sepsis_gan_platform", html=True), name="static")
+    app.mount("/static", StaticFiles(directory="sepsis_gan_platform", html=True), name="static")
 
 @app.get("/")
 async def root():
