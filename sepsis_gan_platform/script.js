@@ -9,7 +9,7 @@
 // Point to the backend server (Docker container URL in production, localhost in development)
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://localhost:8001/api'
-    : 'https://aegisgan-api.onrender.com/api';
+    : 'https://aegis-gan-dashboard.onrender.com/api';
 let apiOnline = false;
 let pipelineState = {
     step: 1,
