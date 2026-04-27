@@ -22,14 +22,33 @@ except ImportError:
 app = FastAPI(title="AegisGAN API", version="2.0")
 
 # ── CORS Configuration ────────────────────────────────────────────────────────
-# Use explicit origins if possible to avoid issues with credentials or browser strictness
+origins = [
+    "https://aegis-gan-dashboard.onrender.com",
+    "https://aegisgan-api.onrender.com",
+    "http://localhost:3000",
+    "http://localhost:8001",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Broad for now, but safer without credentials if using *
-    allow_credentials=True,
+    allow_origins=["*"], # Keeping * but ensuring it's handled
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Manually add CORS headers for extra safety in middleware
+@app.middleware("http")
+async def add_cors_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
+
+print("AegisGAN API Starting Up...")
+print(f"CWD: {os.getcwd()}")
+print(f"Files in CWD: {os.listdir('.')}")
 
 # ── Request Logging Middleware ───────────────────────────────────────────────
 @app.middleware("http")
@@ -144,6 +163,7 @@ async def health():
         "admet_engine": ADMET_AVAILABLE,
         "proteases_available": len(PROTEASES),
         "models": ["supreme", "conditional", "wgan"],
+        "memory_info": "monitoring"
     }
 
 @app.get("/api/proteases")

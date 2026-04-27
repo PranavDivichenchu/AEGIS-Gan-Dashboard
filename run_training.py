@@ -10,7 +10,7 @@ def main():
     print("SUPREME GAN TRAINING")
     print("=" * 80)
 
-    df = pd.read_csv("Preprocessing/MEROPS_sepsis_expanded_dataset.csv")
+    df = pd.read_csv("MEROPS_sepsis_expanded_dataset.csv")
     sequence_cols = ['P4','P3','P2','P1',"P1'","P2'","P3'","P4'"]
     label_col = 'Label'
     protease_col = 'Protease_Name'

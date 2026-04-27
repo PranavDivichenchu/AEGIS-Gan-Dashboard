@@ -1,4 +1,4 @@
-import torch
+# Lazy import torch later to save memory
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, StandardScaler
@@ -43,7 +43,10 @@ STANDARD_AA_3LETTER = {
 
 SEQUENCES_PER_PROTEASE = 10
 OUTPUT_DIR = "generated_sequences"
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+def get_device():
+    import torch
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def is_standard_sequence(sequence):
@@ -63,7 +66,7 @@ def is_standard_sequence(sequence):
 class SequenceGenerator:
     def __init__(self, base_dir="."):
         self.base_dir = base_dir
-        self.device = DEVICE
+        self.device = get_device()
         self.setup_encoders()
 
     def setup_encoders(self):
@@ -102,6 +105,7 @@ class SequenceGenerator:
         data_dim = 8
         hidden_dim = 200
 
+        import torch
         model = ConditionalGenerator(latent_dim, self.num_proteases, data_dim, hidden_dim).to(self.device)
         model.load_state_dict(torch.load("cgan_generator.pth", map_location=self.device))
         model.eval()
@@ -115,6 +119,7 @@ class SequenceGenerator:
         data_dim = 8
         hidden_dim = 256
 
+        import torch
         model = SupremeGenerator(latent_dim, self.num_proteases, data_dim, hidden_dim).to(self.device)
         model.load_state_dict(torch.load("supreme_generator.pth", map_location=self.device))
         model.eval()
@@ -129,6 +134,7 @@ class SequenceGenerator:
         data_dim = 8
         hidden_dim = 256
 
+        import torch
         model = Generator(latent_dim, self.num_proteases, data_dim, hidden_dim).to(self.device)
         model.load_state_dict(torch.load("wgan_generator.pth", map_location=self.device))
         model.eval()
@@ -137,6 +143,7 @@ class SequenceGenerator:
 
     def generate_sequences(self, generator, latent_dim, protease_idx, num_samples):
         """Generate sequences for a specific protease"""
+        import torch
         z = torch.randn(num_samples, latent_dim).to(self.device)
         labels = torch.full((num_samples,), protease_idx, dtype=torch.long).to(self.device)
 
@@ -248,7 +255,7 @@ def main():
     print("=" * 80)
     print("SEQUENCE GENERATION FOR MOLECULAR DOCKING")
     print("=" * 80)
-    print(f"Device: {DEVICE}")
+    print(f"Device: {get_device()}")
     print(f"Sequences per protease: {SEQUENCES_PER_PROTEASE}")
     print(f"Total proteases: {len(PROTEASES)}")
     print(f"Expected total sequences: {len(PROTEASES) * SEQUENCES_PER_PROTEASE}")

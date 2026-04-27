@@ -17,5 +17,5 @@ COPY . .
 # Expose the API port
 EXPOSE 8001
 
-# Run the API
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
+# Run the API with environment-aware port
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8001}"]
